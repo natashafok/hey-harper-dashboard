@@ -189,7 +189,7 @@ const TABS = {
   blurb: 'Leads Blurb'
 };
 function csvUrl(sheetName){
-  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}&_cb=${Date.now()}`;
 }
 
 // ============ CSV PARSER (handles quoted fields, embedded commas/newlines) ============
@@ -221,7 +221,7 @@ function parseCSV(text){
 }
 
 async function fetchTab(sheetName){
-  const res = await fetch(csvUrl(sheetName));
+  const res = await fetch(csvUrl(sheetName), { cache: 'no-store' });
   if(!res.ok) throw new Error(`Could not load "${sheetName}" tab (HTTP ${res.status}). Make sure the Sheet is shared as "Anyone with the link can view".`);
   const text = await res.text();
   return parseCSV(text);
