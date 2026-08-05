@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hey Harper — Drop Dashboard</title>
+<style>
+:root{
+  --pink:#D6388A; --pink-dark:#B72C73; --pink-light:#FCE4EC;
+  --bg:#F7F5F3; --surface:#FFFFFF; --surface-2:#F1EDEE; --border:#E6E1E3;
+  --text-primary:#1F1F1F; --text-secondary:#6B6B73;
+  --red:#E5484D; --yellow:#F5A524; --green:#2FBF71; --blue:#3B82F6; --gold:#C4A265;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text-primary);}
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.header-left{display:flex;align-items:center;gap:14px;}
+.brand{font-weight:700;font-size:18px;letter-spacing:-0.02em;}
+.title{font-weight:600;font-size:20px;color:var(--text-primary);}
+.updated-tag{background:var(--pink-light);color:var(--pink-dark);font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;letter-spacing:0.03em;}
+.header-right{font-size:13px;color:var(--text-secondary);text-align:right;}
+.header-right strong{display:block;color:var(--text-primary);font-size:14px;}
+.tabs{display:flex;gap:4px;padding:0 24px;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;}
+.tab{padding:14px 18px;font-size:14px;font-weight:600;color:var(--text-secondary);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
+.tab.active{color:var(--pink);border-bottom-color:var(--pink);}
+.tab:hover:not(.active){color:var(--text-primary);}
+.panel{display:none;padding:24px;max-width:1400px;margin:0 auto;}
+.panel.active{display:block;}
+.loading{padding:60px 24px;text-align:center;color:var(--text-secondary);font-size:14px;}
+.error-banner{background:#FEF2F2;border:1px solid #FECACA;color:var(--red);padding:14px 18px;border-radius:8px;margin-bottom:20px;font-size:13px;}
+
+/* KPI cards */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;cursor:default;}
+.kpi-card.clickable{cursor:pointer;}
+.kpi-card.clickable:hover{border-color:var(--pink);}
+.kpi-num{font-size:26px;font-weight:700;color:var(--text-primary);}
+.kpi-num.pink{color:var(--pink);}
+.kpi-num.red{color:var(--red);}
+.kpi-label{font-size:12px;color:var(--text-secondary);margin-top:2px;text-transform:uppercase;letter-spacing:0.03em;}
+.kpi-expand{margin-top:10px;font-size:12px;color:var(--text-secondary);display:none;border-top:1px solid var(--border);padding-top:10px;}
+.kpi-expand.open{display:block;}
+.kpi-expand div{padding:3px 0;}
+
+/* Section blocks */
+.section-title{font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;margin:28px 0 12px;}
+.section-title:first-child{margin-top:0;}
+.card-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;}
+.main-card{background:var(--pink-light);border-radius:10px;padding:16px 18px;}
+.main-card h4{margin:0 0 4px;font-size:15px;font-weight:700;color:var(--text-primary);}
+.main-card p{margin:0;font-size:13px;color:var(--text-secondary);}
+.needs-action-empty{font-style:italic;color:var(--text-secondary);font-size:13px;padding:4px 0;}
+.needs-action-item{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:6px;padding:10px 14px;margin-bottom:8px;font-size:13px;}
+.needs-action-item strong{display:block;font-size:14px;margin-bottom:2px;}
+
+.changed-card{background:var(--surface-2);border-radius:8px;padding:12px 14px;margin-bottom:10px;}
+.changed-tag{font-size:10px;font-weight:700;color:var(--pink-dark);text-transform:uppercase;letter-spacing:0.03em;}
+.changed-title{font-weight:700;font-size:14px;margin:4px 0;}
+.changed-detail{font-size:13px;color:var(--text-secondary);}
+
+.coming-item{border-bottom:1px solid var(--border);padding:12px 0;}
+.coming-item:last-child{border-bottom:none;}
+.coming-date{font-size:12px;font-weight:700;color:var(--pink);}
+.coming-title{font-weight:700;font-size:14px;margin:2px 0;}
+.coming-desc{font-size:13px;color:var(--text-secondary);}
+.coming-tag{font-size:11px;color:var(--text-secondary);font-style:italic;margin-top:2px;}
+
+.decision-card{background:#FDF6EC;border-left:3px solid var(--yellow);border-radius:6px;padding:12px 14px;margin-bottom:10px;}
+.decision-title{font-weight:700;font-size:14px;}
+.decision-detail{font-size:13px;color:var(--text-secondary);margin-top:2px;}
+
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;}
+@media (max-width:900px){.three-col{grid-template-columns:1fr;} .kpi-row{grid-template-columns:1fr 1fr;}}
+
+.bulletin-blurb{background:var(--pink-light);border-radius:10px;padding:16px 20px;margin-bottom:24px;font-size:14px;color:var(--text-primary);line-height:1.5;}
+
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{text-align:left;padding:10px 12px;font-size:11px;text-transform:uppercase;letter-spacing:0.03em;color:var(--text-secondary);border-bottom:2px solid var(--border);white-space:nowrap;}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+tr.month-sep td{background:var(--surface-2);font-weight:700;cursor:pointer;padding:10px 12px;}
+.month-chevron{transition:transform .15s;display:inline-block;}
+.month-chevron.open{transform:rotate(90deg);}
+.month-rows{display:none;}
+.month-rows.open{display:table-row-group;}
+.status-badge{display:inline-block;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:700;}
+.status-Live{background:#E7F9EF;color:var(--green);}
+.status-Planned{background:#EFF3FE;color:var(--blue);}
+.status-Done{background:var(--surface-2);color:var(--text-secondary);}
+.status-Progress{background:#FFF6E5;color:var(--yellow);}
+.status-Hold{background:#FDF0F0;color:var(--red);}
+.tag{display:inline-block;background:var(--pink-light);color:var(--pink-dark);font-size:11px;padding:2px 8px;border-radius:8px;margin:2px 3px 2px 0;}
+.half-tag{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:var(--surface-2);color:var(--text-secondary);}
+.notes-toggle{color:var(--pink);cursor:pointer;font-size:12px;font-weight:600;}
+.notes-full{display:none;white-space:pre-wrap;margin-top:6px;font-size:12px;color:var(--text-secondary);}
+.notes-full.open{display:block;}
+
+/* Calendar */
+.cal-month{margin-bottom:28px;}
+.cal-month h4{font-size:14px;margin-bottom:8px;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-day-label{font-size:10px;color:var(--text-secondary);text-align:center;padding:4px 0;text-transform:uppercase;}
+.cal-cell{background:var(--surface);border:1px solid var(--border);border-radius:6px;min-height:56px;padding:4px;font-size:10px;position:relative;}
+.cal-cell.empty{background:transparent;border:none;}
+.cal-daynum{font-weight:700;color:var(--text-secondary);}
+.cal-launch{background:var(--pink);color:#fff;border-radius:4px;padding:1px 4px;margin-top:2px;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <span class="brand">hey harper</span>
+    <span class="title">Drop Dashboard</span>
+    <span class="updated-tag" id="updatedTag">Loading…</span>
+  </div>
+  <div class="header-right">
+    <strong id="metaLabel">H1+H2 2026</strong>
+    <span id="metaDate"></span>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="home" onclick="showTab('home')">All Launches</div>
+  <div class="tab" data-tab="bulletin" onclick="showTab('bulletin')">Bulletin Board</div>
+  <div class="tab" data-tab="calendar" onclick="showTab('calendar')">Calendar</div>
+</div>
+
+<div id="loadingMsg" class="loading">Loading dashboard data from Google Sheet…</div>
+<div id="errorMsg" style="display:none" class="panel active"></div>
+
+<div class="panel active" id="p-home">
+  <div class="kpi-row" id="kpiRow"></div>
+  <div class="section-title">All Launches</div>
+  <table>
+    <thead><tr>
+      <th></th><th>Drop</th><th>Status</th><th>Tier</th><th>Live on PDP</th><th>MKT Comms</th><th>Owner</th><th>Notes</th>
+    </tr></thead>
+    <tbody id="tableBodyAnchor"></tbody>
+  </table>
+</div>
+
+<div class="panel" id="p-bulletin">
+  <div class="bulletin-blurb" id="leadsBlurb"></div>
+
+  <div class="section-title">Main Things This Week</div>
+  <div class="card-row" id="mainThings"></div>
+
+  <div class="section-title">Needs Action</div>
+  <div id="needsAction"></div>
+
+  <div class="three-col" style="margin-top:28px">
+    <div>
+      <div class="section-title">What Changed</div>
+      <div id="whatChanged"></div>
+    </div>
+    <div>
+      <div class="section-title">Coming Up</div>
+      <div id="comingUp"></div>
+    </div>
+    <div>
+      <div class="section-title">Decisions Needed</div>
+      <div id="decisionsNeeded"></div>
+    </div>
+  </div>
+</div>
+
+<div class="panel" id="p-calendar">
+  <div id="calendarGrid"></div>
+</div>
+
+<script>
+// ============ CONFIG ============
+const SHEET_ID = '1_XFIY84E83LxnAUmrYxtqqVDVOEVNYhCk0oUab-2HkI';
+const TABS = {
+  drops: 'Drops',
+  mainThings: 'Main Things This Week',
+  whatChanged: 'What Changed',
+  comingUp: 'Coming Up',
+  decisions: 'Decisions Needed',
+  blurb: 'Leads Blurb'
+};
+function csvUrl(sheetName){
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+}
+
+// ============ CSV PARSER (handles quoted fields, embedded commas/newlines) ============
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for(let i=0;i<text.length;i++){
+    const c = text[i], next = text[i+1];
+    if(inQuotes){
+      if(c === '"' && next === '"'){ field+='"'; i++; }
+      else if(c === '"'){ inQuotes = false; }
+      else { field += c; }
+    } else {
+      if(c === '"'){ inQuotes = true; }
+      else if(c === ','){ row.push(field); field=''; }
+      else if(c === '\n'){ row.push(field); rows.push(row); row=[]; field=''; }
+      else if(c === '\r'){ /* skip */ }
+      else { field += c; }
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  if(!rows.length) return [];
+  const headers = rows[0].map(h=>h.trim());
+  return rows.slice(1).filter(r=>r.some(c=>c && c.trim())).map(r=>{
+    const obj = {};
+    headers.forEach((h,idx)=> obj[h] = (r[idx]||'').trim());
+    return obj;
+  });
+}
+
+async function fetchTab(sheetName){
+  const res = await fetch(csvUrl(sheetName));
+  if(!res.ok) throw new Error(`Could not load "${sheetName}" tab (HTTP ${res.status}). Make sure the Sheet is shared as "Anyone with the link can view".`);
+  const text = await res.text();
+  return parseCSV(text);
+}
+
+// ============ DATE HELPERS ============
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function parseFlexDate(str){
+  if(!str) return null;
+  str = str.trim();
+  if(!str || /tbd/i.test(str) || /^n\/a$/i.test(str)) return null;
+  // strip parenthetical notes
+  str = str.replace(/\(.*?\)/g,'').trim();
+  // take first date-like token if compound ("October 1" etc already fine)
+  const m = str.match(/([A-Za-z]+)\.?\s+(\d{1,2})/);
+  if(!m) return null;
+  const monIdx = MONTHS.findIndex(mo=> mo.toLowerCase().startsWith(m[1].toLowerCase().slice(0,3)));
+  if(monIdx === -1) return null;
+  const day = parseInt(m[2],10);
+  let year = 2026;
+  return new Date(year, monIdx, day);
+}
+function fmtDate(d){
+  if(!d) return '—';
+  return `${MONTHS[d.getMonth()].slice(0,3)} ${d.getDate()}`;
+}
+function daysBetween(a,b){ return Math.round((b-a)/(1000*60*60*24)); }
+
+// ============ STATE ============
+let DROPS = [];
+
+// ============ RENDER: KPI ============
+function renderKPIs(){
+  const total = DROPS.length;
+  const blockers = DROPS.filter(d=> d.Blocker && d.Blocker.toLowerCase()==='yes');
+  const missing = DROPS.filter(d=> d['Missing Input'] && d['Missing Input'].trim());
+  const today = new Date(); today.setHours(0,0,0,0);
+  const future = DROPS.map(d=>parseFlexDate(d['Live on PDP'])).filter(d=>d && d>=today).sort((a,b)=>a-b);
+  const nextLaunch = future[0];
+  const daysUntil = nextLaunch ? daysBetween(today, nextLaunch) : null;
+
+  const kpiRow = document.getElementById('kpiRow');
+  kpiRow.innerHTML = `
+    <div class="kpi-card"><div class="kpi-num">${total}</div><div class="kpi-label">Total Launches</div></div>
+    <div class="kpi-card clickable" onclick="toggleKpi('blockersExp')"><div class="kpi-num red">${blockers.length}</div><div class="kpi-label">Blockers</div>
+      <div class="kpi-expand" id="blockersExp">${blockers.length? blockers.map(d=>`<div>${d['Drop Name']}</div>`).join('') : '<div>No blockers right now.</div>'}</div>
+    </div>
+    <div class="kpi-card clickable" onclick="toggleKpi('missingExp')"><div class="kpi-num" style="color:var(--yellow)">${missing.length}</div><div class="kpi-label">Missing Inputs</div>
+      <div class="kpi-expand" id="missingExp">${missing.length? missing.map(d=>`<div>${d['Drop Name']}</div>`).join('') : '<div>Nothing missing.</div>'}</div>
+    </div>
+    <div class="kpi-card"><div class="kpi-num pink">${daysUntil!==null? daysUntil : '—'}</div><div class="kpi-label">${nextLaunch? `Days to ${nextLaunch===null?'':fmtDate(nextLaunch)}` : 'Next Launch'}</div></div>
+  `;
+}
+function toggleKpi(id){ document.getElementById(id).classList.toggle('open'); }
+
+// ============ RENDER: TABLE ============
+function statusClass(status){
+  if(!status) return '';
+  if(/live/i.test(status)) return 'status-Live';
+  if(/planned/i.test(status)) return 'status-Planned';
+  if(/done/i.test(status)) return 'status-Done';
+  if(/progress|almost/i.test(status)) return 'status-Progress';
+  if(/hold/i.test(status)) return 'status-Hold';
+  return '';
+}
+function renderDropRow(d, gid, ri){
+  const notesId = `notes-${gid}-${ri}`;
+  const notesShort = (d.Notes||'').split('|')[0].slice(0,80);
+  return `<tr>
+    <td><span class="half-tag">${d.Half||''}</span></td>
+    <td><strong>${d['Drop Name']||''}</strong></td>
+    <td><span class="status-badge ${statusClass(d.Status)}">${d.Status||''}</span></td>
+    <td>${d.Tier||''}</td>
+    <td>${d['Live on PDP']||'—'}</td>
+    <td>${d['MKT Comms']||'—'}</td>
+    <td>${d.Owner||'—'}</td>
+    <td>
+      ${notesShort? notesShort+'…' : '—'}
+      ${d.Notes? `<div><span class="notes-toggle" onclick="toggleNotes('${notesId}')">show all</span></div><div class="notes-full" id="${notesId}">${(d.Notes||'').replace(/\|/g,'\n')}</div>`:''}
+    </td>
+  </tr>`;
+}
+function isArchived(d){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const live = parseFlexDate(d['Live on PDP']);
+  const mkt = parseFlexDate(d['MKT Comms']);
+  // If neither date is known, never archive automatically.
+  if(!live && !mkt) return false;
+  const dates = [live, mkt].filter(Boolean);
+  const latest = new Date(Math.max(...dates.map(dt=>dt.getTime())));
+  return daysBetween(latest, today) > 7;
+}
+function renderTable(){
+  const archived = DROPS.filter(isArchived);
+  const active = DROPS.filter(d=> !isArchived(d));
+
+  const today = new Date();
+  const currentMonthName = MONTHS[today.getMonth()];
+
+  const groups = {};
+  active.forEach(d=>{
+    const dt = parseFlexDate(d['Live on PDP']) || parseFlexDate(d['MKT Comms']);
+    const key = dt ? MONTHS[dt.getMonth()] : 'Date TBD';
+    groups[key] = groups[key] || [];
+    groups[key].push(d);
+  });
+  const orderedKeys = MONTHS.filter(m=>groups[m]).concat(groups['Date TBD']? ['Date TBD']: []);
+
+  let bodies = '';
+  orderedKeys.forEach((mon,gi)=>{
+    const gid = `grp-${gi}`;
+    const isCurrent = mon === currentMonthName;
+    bodies += `<tbody><tr class="month-sep" onclick="toggleGroup('${gid}')"><td colspan="8"><span class="month-chevron ${isCurrent?'open':''}" id="chev-${gid}">›</span> ${mon} (${groups[mon].length})</td></tr></tbody>`;
+    bodies += `<tbody class="month-rows ${isCurrent?'open':''}" id="${gid}">`;
+    groups[mon].forEach((d,ri)=> bodies += renderDropRow(d, gid, ri));
+    bodies += `</tbody>`;
+  });
+
+  // Archive: any drop (H1 or H2) more than 7 days past its latest relevant date
+  if(archived.length){
+    const gid = 'grp-archive';
+    bodies += `<tbody><tr class="month-sep" onclick="toggleGroup('${gid}')"><td colspan="8"><span class="month-chevron" id="chev-${gid}">›</span> Archive (${archived.length})</td></tr></tbody>`;
+    bodies += `<tbody class="month-rows" id="${gid}">`;
+    archived.forEach((d,ri)=> bodies += renderDropRow(d, gid, ri));
+    bodies += `</tbody>`;
+  }
+
+  document.getElementById('tableBodyAnchor').outerHTML = bodies;
+}
+function toggleGroup(id){
+  document.getElementById(id).classList.toggle('open');
+  document.getElementById('chev-'+id).classList.toggle('open');
+}
+function toggleNotes(id){ document.getElementById(id).classList.toggle('open'); }
+
+// ============ RENDER: BULLETIN BOARD ============
+function renderBulletin(blurbRows, mainRows, changedRows, comingRows, decisionRows){
+  document.getElementById('leadsBlurb').textContent = blurbRows[0] ? blurbRows[0][Object.keys(blurbRows[0])[0]] : '';
+
+  document.getElementById('mainThings').innerHTML = mainRows.map(r=>`
+    <div class="main-card"><h4>${r.Title||''}</h4><p>${r.Description||''}</p></div>
+  `).join('') || '<div class="needs-action-empty">Nothing added yet.</div>';
+
+  // Needs Action: auto-computed from Drops with Live on PDP within next 7 days
+  const today = new Date(); today.setHours(0,0,0,0);
+  const in7 = DROPS.filter(d=>{
+    const dt = parseFlexDate(d['Live on PDP']);
+    if(!dt) return false;
+    const diff = daysBetween(today, dt);
+    return diff >= 0 && diff <= 7;
+  });
+  const naEl = document.getElementById('needsAction');
+  if(!in7.length){
+    naEl.innerHTML = `<div class="needs-action-empty">Nothing with a live date in the next 7 days. This only tracks PDP-live dates.</div>`;
+  } else {
+    naEl.innerHTML = in7.map(d=>`<div class="needs-action-item"><strong>${d['Drop Name']}</strong>Live on PDP: ${d['Live on PDP']} · Owner: ${d.Owner||'—'}</div>`).join('');
+  }
+
+  document.getElementById('whatChanged').innerHTML = changedRows.map(r=>`
+    <div class="changed-card"><div class="changed-tag">${r.Category||''}</div><div class="changed-title">${r.Title||''}</div><div class="changed-detail">${r.Detail||''}</div></div>
+  `).join('') || '<div class="needs-action-empty">Nothing logged yet.</div>';
+
+  document.getElementById('comingUp').innerHTML = comingRows.map(r=>`
+    <div class="coming-item"><div class="coming-date">${r.Date||''}</div><div class="coming-title">${r.Title||''}</div><div class="coming-desc">${r.Description||''}</div>${r.Tag?`<div class="coming-tag">${r.Tag}</div>`:''}</div>
+  `).join('') || '<div class="needs-action-empty">Nothing added yet.</div>';
+
+  document.getElementById('decisionsNeeded').innerHTML = decisionRows.map(r=>`
+    <div class="decision-card"><div class="decision-title">${r.Decision||''}</div><div class="decision-detail">Affects: ${r['Affects Drop']||''}${r.Context?` (${r.Context})`:''}${r.Owner?` · owner: ${r.Owner}`:''}</div></div>
+  `).join('') || '<div class="needs-action-empty">Nothing pending.</div>';
+}
+
+// ============ RENDER: CALENDAR ============
+function renderCalendar(){
+  const today = new Date();
+  const grid = document.getElementById('calendarGrid');
+  let html = '';
+  for(let offset=0; offset<3; offset++){
+    const monthDate = new Date(today.getFullYear(), today.getMonth()+offset, 1);
+    const monLabel = `${MONTHS[monthDate.getMonth()]} ${monthDate.getFullYear()}`;
+    const firstDay = monthDate.getDay();
+    const daysInMonth = new Date(monthDate.getFullYear(), monthDate.getMonth()+1, 0).getDate();
+    const launchesThisMonth = DROPS.filter(d=>{
+      const dt = parseFlexDate(d['Live on PDP']);
+      return dt && dt.getMonth()===monthDate.getMonth() && dt.getFullYear()===monthDate.getFullYear();
+    });
+    html += `<div class="cal-month"><h4>${monLabel}</h4><div class="cal-grid">`;
+    ['S','M','T','W','T','F','S'].forEach(d=> html += `<div class="cal-day-label">${d}</div>`);
+    for(let i=0;i<firstDay;i++) html += `<div class="cal-cell empty"></div>`;
+    for(let day=1; day<=daysInMonth; day++){
+      const dayLaunches = launchesThisMonth.filter(d=> parseFlexDate(d['Live on PDP']).getDate()===day);
+      html += `<div class="cal-cell"><div class="cal-daynum">${day}</div>${dayLaunches.map(d=>`<div class="cal-launch" title="${d['Drop Name']}">${d['Drop Name']}</div>`).join('')}</div>`;
+    }
+    html += `</div></div>`;
+  }
+  grid.innerHTML = html;
+}
+
+// ============ TABS ============
+function showTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===id));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('p-'+id).classList.add('active');
+}
+
+// ============ INIT ============
+async function init(){
+  try{
+    const [dropsRaw, mainRows, changedRows, comingRows, decisionRows, blurbRows] = await Promise.all([
+      fetchTab(TABS.drops), fetchTab(TABS.mainThings), fetchTab(TABS.whatChanged),
+      fetchTab(TABS.comingUp), fetchTab(TABS.decisions), fetchTab(TABS.blurb)
+    ]);
+    DROPS = dropsRaw;
+
+    document.getElementById('loadingMsg').style.display = 'none';
+    document.getElementById('updatedTag').textContent = 'Live data';
+    const now = new Date();
+    document.getElementById('metaDate').textContent = now.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+
+    renderKPIs();
+    renderTable();
+    renderBulletin(blurbRows, mainRows, changedRows, comingRows, decisionRows);
+    renderCalendar();
+  } catch(err){
+    document.getElementById('loadingMsg').style.display = 'none';
+    const errEl = document.getElementById('errorMsg');
+    errEl.style.display = 'block';
+    errEl.innerHTML = `<div class="error-banner"><strong>Couldn't load dashboard data.</strong><br>${err.message}</div>`;
+    console.error(err);
+  }
+}
+init();
+</script>
+</body>
+</html>
