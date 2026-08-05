@@ -129,14 +129,14 @@ tr.month-sep td{background:var(--surface-2);font-weight:700;cursor:pointer;paddi
 <div id="loadingMsg" class="loading">Loading dashboard data from Google Sheet…</div>
 <div id="errorMsg" style="display:none" class="panel active"></div>
 
-<div class="panel active" id="p-home" style="display:none">
+<div class="panel active" id="p-home">
   <div class="kpi-row" id="kpiRow"></div>
   <div class="section-title">All Launches</div>
   <table>
     <thead><tr>
       <th></th><th>Drop</th><th>Status</th><th>Tier</th><th>Live on PDP</th><th>MKT Comms</th><th>Owner</th><th>Notes</th>
     </tr></thead>
-    <tbody id="tableBody"></tbody>
+    <tbody id="tableBodyAnchor"></tbody>
   </table>
 </div>
 
@@ -279,40 +279,69 @@ function statusClass(status){
   if(/hold/i.test(status)) return 'status-Hold';
   return '';
 }
+function renderDropRow(d, gid, ri){
+  const notesId = `notes-${gid}-${ri}`;
+  const notesShort = (d.Notes||'').split('|')[0].slice(0,80);
+  return `<tr>
+    <td><span class="half-tag">${d.Half||''}</span></td>
+    <td><strong>${d['Drop Name']||''}</strong></td>
+    <td><span class="status-badge ${statusClass(d.Status)}">${d.Status||''}</span></td>
+    <td>${d.Tier||''}</td>
+    <td>${d['Live on PDP']||'—'}</td>
+    <td>${d['MKT Comms']||'—'}</td>
+    <td>${d.Owner||'—'}</td>
+    <td>
+      ${notesShort? notesShort+'…' : '—'}
+      ${d.Notes? `<div><span class="notes-toggle" onclick="toggleNotes('${notesId}')">show all</span></div><div class="notes-full" id="${notesId}">${(d.Notes||'').replace(/\|/g,'\n')}</div>`:''}
+    </td>
+  </tr>`;
+}
+function isArchived(d){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const live = parseFlexDate(d['Live on PDP']);
+  const mkt = parseFlexDate(d['MKT Comms']);
+  // If neither date is known, never archive automatically.
+  if(!live && !mkt) return false;
+  const dates = [live, mkt].filter(Boolean);
+  const latest = new Date(Math.max(...dates.map(dt=>dt.getTime())));
+  return daysBetween(latest, today) > 7;
+}
 function renderTable(){
+  const archived = DROPS.filter(isArchived);
+  const active = DROPS.filter(d=> !isArchived(d));
+
+  const today = new Date();
+  const currentMonthName = MONTHS[today.getMonth()];
+
   const groups = {};
-  DROPS.forEach(d=>{
+  active.forEach(d=>{
     const dt = parseFlexDate(d['Live on PDP']) || parseFlexDate(d['MKT Comms']);
     const key = dt ? MONTHS[dt.getMonth()] : 'Date TBD';
     groups[key] = groups[key] || [];
     groups[key].push(d);
   });
   const orderedKeys = MONTHS.filter(m=>groups[m]).concat(groups['Date TBD']? ['Date TBD']: []);
-  let html = '';
+
+  let bodies = '';
   orderedKeys.forEach((mon,gi)=>{
     const gid = `grp-${gi}`;
-    html += `<tr class="month-sep" onclick="toggleGroup('${gid}')"><td colspan="8"><span class="month-chevron ${gi===0?'open':''}" id="chev-${gid}">›</span> ${mon} (${groups[mon].length})</td></tr>`;
-    html += `<tbody class="month-rows ${gi===0?'open':''}" id="${gid}">`;
-    groups[mon].forEach((d,ri)=>{
-      const notesId = `notes-${gid}-${ri}`;
-      const notesShort = (d.Notes||'').split('|')[0].slice(0,80);
-      html += `<tr>
-        <td><span class="half-tag">${d.Half||''}</span></td>
-        <td><strong>${d['Drop Name']||''}</strong></td>
-        <td><span class="status-badge ${statusClass(d.Status)}">${d.Status||''}</span></td>
-        <td>${d.Tier||''}</td>
-        <td>${d['Live on PDP']||'—'}</td>
-        <td>${d['MKT Comms']||'—'}</td>
-        <td>${d.Owner||'—'}</td>
-        <td>
-          ${notesShort? notesShort+'…' : '—'}
-          ${d.Notes? `<div><span class="notes-toggle" onclick="toggleNotes('${notesId}')">show all</span></div><div class="notes-full" id="${notesId}">${(d.Notes||'').replace(/\|/g,'\n')}</div>`:''}
-        </td>
-      </tr>`;
-    });
-    html += `</tbody>`;
+    const isCurrent = mon === currentMonthName;
+    bodies += `<tbody><tr class="month-sep" onclick="toggleGroup('${gid}')"><td colspan="8"><span class="month-chevron ${isCurrent?'open':''}" id="chev-${gid}">›</span> ${mon} (${groups[mon].length})</td></tr></tbody>`;
+    bodies += `<tbody class="month-rows ${isCurrent?'open':''}" id="${gid}">`;
+    groups[mon].forEach((d,ri)=> bodies += renderDropRow(d, gid, ri));
+    bodies += `</tbody>`;
   });
-  document.getElementById('tableBody').outerHTML = `<tbody id="tableBody">${html}</tbody>`;
+
+  // Archive: any drop (H1 or H2) more than 7 days past its latest relevant date
+  if(archived.length){
+    const gid = 'grp-archive';
+    bodies += `<tbody><tr class="month-sep" onclick="toggleGroup('${gid}')"><td colspan="8"><span class="month-chevron" id="chev-${gid}">›</span> Archive (${archived.length})</td></tr></tbody>`;
+    bodies += `<tbody class="month-rows" id="${gid}">`;
+    archived.forEach((d,ri)=> bodies += renderDropRow(d, gid, ri));
+    bodies += `</tbody>`;
+  }
+
+  document.getElementById('tableBodyAnchor').outerHTML = bodies;
 }
 function toggleGroup(id){
   document.getElementById(id).classList.toggle('open');
@@ -399,7 +428,6 @@ async function init(){
     DROPS = dropsRaw;
 
     document.getElementById('loadingMsg').style.display = 'none';
-    document.getElementById('p-home').style.display = 'block';
     document.getElementById('updatedTag').textContent = 'Live data';
     const now = new Date();
     document.getElementById('metaDate').textContent = now.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
