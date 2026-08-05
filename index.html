@@ -179,17 +179,18 @@ tr.month-sep td{background:var(--surface-2);font-weight:700;cursor:pointer;paddi
 
 <script>
 // ============ CONFIG ============
-const SHEET_ID = '1X8SpeoK5mUplPidxqa4dtmg5QbW__C_S6zuD4RSayTY';
-const TABS = {
-  drops: 'Drops',
-  mainThings: 'Main Things This Week',
-  whatChanged: 'What Changed',
-  comingUp: 'Coming Up',
-  decisions: 'Decisions Needed',
-  blurb: 'Leads Blurb'
+// Each data section now lives in its OWN standalone Google Sheet (not tabs in one file).
+// This avoids a Google Drive conversion bug that was corrupting multi-tab xlsx uploads.
+const SHEETS = {
+  drops: '1a_81610Q61pRazHmJsjQe-knOiiXmY_osiAaecxgwaU',
+  mainThings: '1_Tv5kN9FTtEMQeO9Tir70cY6dwKmkcHxwJLFRZ5warM',
+  whatChanged: '1ulrlWV1Z3vuLuUsUkZhF6O2YNt6odyH4FmssWssC5MU',
+  comingUp: '1cNQxozJY7qaRixCsgqFtBxwvZzMB7KyL1nTXTaPk-CE',
+  decisions: '1L9yRouyFmLrHHDpDfX1zjv3Pb74sYo43BNPp0velXyQ',
+  blurb: '1k-hGaoOYlhgp3jZik9xM6UL-YMgmp5WhY4q_e2xCsLg'
 };
-function csvUrl(sheetName){
-  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}&_cb=${Date.now()}`;
+function csvUrl(sheetId){
+  return `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&_cb=${Date.now()}`;
 }
 
 // ============ CSV PARSER (handles quoted fields, embedded commas/newlines) ============
@@ -220,9 +221,9 @@ function parseCSV(text){
   });
 }
 
-async function fetchTab(sheetName){
-  const res = await fetch(csvUrl(sheetName), { cache: 'no-store' });
-  if(!res.ok) throw new Error(`Could not load "${sheetName}" tab (HTTP ${res.status}). Make sure the Sheet is shared as "Anyone with the link can view".`);
+async function fetchTab(sheetId){
+  const res = await fetch(csvUrl(sheetId), { cache: 'no-store' });
+  if(!res.ok) throw new Error(`Could not load data (HTTP ${res.status}). Make sure the Sheet is shared as "Anyone with the link can view".`);
   const text = await res.text();
   return parseCSV(text);
 }
@@ -450,8 +451,8 @@ function showTab(id){
 async function init(){
   try{
     const [dropsRaw, mainRows, changedRows, comingRows, decisionRows, blurbRows] = await Promise.all([
-      fetchTab(TABS.drops), fetchTab(TABS.mainThings), fetchTab(TABS.whatChanged),
-      fetchTab(TABS.comingUp), fetchTab(TABS.decisions), fetchTab(TABS.blurb)
+      fetchTab(SHEETS.drops), fetchTab(SHEETS.mainThings), fetchTab(SHEETS.whatChanged),
+      fetchTab(SHEETS.comingUp), fetchTab(SHEETS.decisions), fetchTab(SHEETS.blurb)
     ]);
     DROPS = dropsRaw;
 
