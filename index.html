@@ -3,2196 +3,420 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hey Harper Drop Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<title>Hey Harper — Drop Dashboard</title>
 <style>
 :root{
-  --pink:#D6388A;--pink-dark:#B72C73;--pink-light:#FCE4EC;--pink-dust:#F2E0E9;
-  --bg:#F7F5F3;--surface:#FFFFFF;--s2:#F1EDEE;--bd:#EFEAE7;
-  --tx:#1F1F1F;--tm:#6B6B73;--ts:#9B9BA8;
-  --red:#E5484D;--redbg:rgba(229,72,77,.1);--redbd:rgba(229,72,77,.3);
-  --yel:#E8900A;--yelbg:rgba(232,144,10,.1);--yelbd:rgba(232,144,10,.3);
-  --grn:#1A9C5B;--grnbg:rgba(26,156,91,.1);--grnbd:rgba(26,156,91,.3);
-  --blu:#3B82F6;--blubg:rgba(59,130,246,.08);
-  --gold:#C4A265;--goldbg:rgba(196,162,101,.12);
-  --neu:#9B9BA8;--neubg:rgba(155,155,168,.1);--neubd:rgba(155,155,168,.25);
-  --topbar-h:56px;
+  --pink:#D6388A; --pink-dark:#B72C73; --pink-light:#FCE4EC;
+  --bg:#F7F5F3; --surface:#FFFFFF; --surface-2:#F1EDEE; --border:#E6E1E3;
+  --text-primary:#1F1F1F; --text-secondary:#6B6B73;
+  --red:#E5484D; --yellow:#F5A524; --green:#2FBF71; --blue:#3B82F6; --gold:#C4A265;
 }
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);line-height:1.5;padding:0 0 60px}
+*{box-sizing:border-box;}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text-primary);}
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.header-left{display:flex;align-items:center;gap:14px;}
+.brand{font-weight:700;font-size:18px;letter-spacing:-0.02em;}
+.title{font-weight:600;font-size:20px;color:var(--text-primary);}
+.updated-tag{background:var(--pink-light);color:var(--pink-dark);font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;letter-spacing:0.03em;}
+.header-right{font-size:13px;color:var(--text-secondary);text-align:right;}
+.header-right strong{display:block;color:var(--text-primary);font-size:14px;}
+.tabs{display:flex;gap:4px;padding:0 24px;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;}
+.tab{padding:14px 18px;font-size:14px;font-weight:600;color:var(--text-secondary);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
+.tab.active{color:var(--pink);border-bottom-color:var(--pink);}
+.tab:hover:not(.active){color:var(--text-primary);}
+.panel{display:none;padding:24px;max-width:1400px;margin:0 auto;}
+.panel.active{display:block;}
+.loading{padding:60px 24px;text-align:center;color:var(--text-secondary);font-size:14px;}
+.error-banner{background:#FEF2F2;border:1px solid #FECACA;color:var(--red);padding:14px 18px;border-radius:8px;margin-bottom:20px;font-size:13px;}
 
-/* TOP BAR */
-.topbar{display:flex;justify-content:space-between;align-items:center;padding:0 32px;background:var(--surface);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:100;height:var(--topbar-h)}
-.topbar-left{display:flex;align-items:center;gap:10px}
-.topbar-logo{height:22px;display:block}
-.topbar-title{font-size:14px;font-weight:600;color:var(--tm);letter-spacing:-.2px}
-.topbar-divider{width:1px;height:18px;background:var(--bd)}
-.updated-tag{font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;background:var(--grnbg);color:var(--grn);letter-spacing:.4px;text-transform:uppercase}
-.topbar .meta{font-size:13px;color:var(--ts);text-align:right}
-.topbar .meta strong{color:var(--tx);font-size:12px;display:block;font-weight:600}
+/* KPI cards */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;cursor:default;}
+.kpi-card.clickable{cursor:pointer;}
+.kpi-card.clickable:hover{border-color:var(--pink);}
+.kpi-num{font-size:26px;font-weight:700;color:var(--text-primary);}
+.kpi-num.pink{color:var(--pink);}
+.kpi-num.red{color:var(--red);}
+.kpi-label{font-size:12px;color:var(--text-secondary);margin-top:2px;text-transform:uppercase;letter-spacing:0.03em;}
+.kpi-expand{margin-top:10px;font-size:12px;color:var(--text-secondary);display:none;border-top:1px solid var(--border);padding-top:10px;}
+.kpi-expand.open{display:block;}
+.kpi-expand div{padding:3px 0;}
 
-/* ── PRIORITIES — three-zone briefing card ── */
-.priorities{margin:0 32px 14px;background:var(--surface);border:1px solid var(--bd);border-radius:10px;overflow:hidden}
-#p-bulletin .priorities{margin:0 0 14px}
-.priorities-header{display:flex;align-items:center;gap:14px;padding:10px 20px;border-bottom:1px solid var(--bd);background:var(--pink-light);}
-.priorities-header h3{font-size:12px;font-weight:800;color:var(--pink-dark);letter-spacing:.4px;margin:0;text-transform:uppercase}
-.priorities-header .pri-updated{font-size:12px;color:var(--pink-dark);opacity:.7;font-weight:500}
-.priorities-inner{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:24px;padding:16px 32px}
-@media(max-width:980px){.priorities-inner{grid-template-columns:1fr 1fr}}
-.pri-col{padding:12px 16px;border-right:1.5px solid var(--bd);display:flex;flex-direction:column;min-width:0}
-.pri-col:last-child{border-right:none;background:var(--bg)}
-.pri-col-label{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--pink);margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid var(--pink-light);flex-shrink:0}
-.pri-col-body{padding-right:2px}
-#p-bulletin .pri-col-body{overflow-y:visible;max-height:none}
+/* Section blocks */
+.section-title{font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;margin:28px 0 12px;}
+.section-title:first-child{margin-top:0;}
+.card-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;}
+.main-card{background:var(--pink-light);border-radius:10px;padding:16px 18px;}
+.main-card h4{margin:0 0 4px;font-size:15px;font-weight:700;color:var(--text-primary);}
+.main-card p{margin:0;font-size:13px;color:var(--text-secondary);}
+.needs-action-empty{font-style:italic;color:var(--text-secondary);font-size:13px;padding:4px 0;}
+.needs-action-item{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:6px;padding:10px 14px;margin-bottom:8px;font-size:13px;}
+.needs-action-item strong{display:block;font-size:14px;margin-bottom:2px;}
 
-/* MAIN THINGS THIS WEEK */
-.bh-wrap{margin:0 0 14px;background:var(--pink-light);border-radius:10px;padding:16px 22px}
-.bh-label{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--pink-dark);margin-bottom:10px}
-.bh-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-@media(max-width:780px){.bh-grid{grid-template-columns:1fr}}
-.bh-card{background:var(--pink-light);border-radius:8px;padding:12px 14px}
-.bh-card-title{font-size:14px;font-weight:700;color:var(--tx);line-height:1.35;margin-bottom:3px}
-.bh-card-sub{font-size:12px;color:var(--tx);line-height:1.4}
+.changed-card{background:var(--surface-2);border-radius:8px;padding:12px 14px;margin-bottom:10px;}
+.changed-tag{font-size:10px;font-weight:700;color:var(--pink-dark);text-transform:uppercase;letter-spacing:0.03em;}
+.changed-title{font-weight:700;font-size:14px;margin:4px 0;}
+.changed-detail{font-size:13px;color:var(--text-secondary);}
 
-/* WHAT CHANGED — card style (corkboard) */
-.wc-card{background:var(--bg);border-radius:7px;padding:10px 12px;margin-bottom:8px}
-.wc-card:last-child{margin-bottom:0}
-.wc-card-tier{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-.wc-card-tier.commercial{color:var(--pink-dark)}
-.wc-card-tier.execution{color:var(--ts)}
-.wc-card-title{font-size:13px;font-weight:700;color:var(--tx);line-height:1.4;margin-bottom:4px}
-.wc-card-bullets{list-style:none;margin:0;padding:0}
-.wc-card-bullets li{font-size:12px;color:var(--ts);line-height:1.5;padding-left:12px;position:relative;margin:2px 0}
-.wc-card-bullets li::before{content:"•";position:absolute;left:0;color:var(--pink-dark)}
+.coming-item{border-bottom:1px solid var(--border);padding:12px 0;}
+.coming-item:last-child{border-bottom:none;}
+.coming-date{font-size:12px;font-weight:700;color:var(--pink);}
+.coming-title{font-weight:700;font-size:14px;margin:2px 0;}
+.coming-desc{font-size:13px;color:var(--text-secondary);}
+.coming-tag{font-size:11px;color:var(--text-secondary);font-style:italic;margin-top:2px;}
 
-/* SHARED ARCHIVE — below all columns */
-.board-archive{margin-top:4px;padding:14px 32px 4px;border-top:1px solid var(--bd)}
-.board-archive summary{cursor:pointer;color:var(--ts);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;list-style:none}
-.board-archive summary::-webkit-details-marker{display:none}
-.board-archive summary::before{content:"›";display:inline-block;margin-right:6px;font-weight:700;color:var(--pink);transition:transform .2s}
-.board-archive[open] summary::before{transform:rotate(90deg)}
-.board-archive-content{padding-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
-@media(max-width:780px){.board-archive-content{grid-template-columns:1fr}}
-.pri-col-body::-webkit-scrollbar{width:3px}
-.pri-col-body::-webkit-scrollbar-thumb{background:var(--pink-light);border-radius:2px}
-.pri-decisions ul{list-style:none;padding:0;margin:0}
-.pri-decisions ul li{font-size:13px;color:var(--tm);margin:0 0 8px;padding-left:14px;position:relative;line-height:1.45}
-.pri-decisions ul li::before{content:"→";position:absolute;left:0;color:var(--pink);font-size:13px;font-weight:700;line-height:1.6}
-.pri-decisions ul li strong{color:var(--tx);font-weight:700}
-.pri-decisions ul li span.pri-sub{display:block;font-size:12px;color:var(--ts);margin-top:1px}
-.pri-tier-label{font-size:11px!important;font-weight:700!important;text-transform:uppercase;letter-spacing:.6px;margin-top:14px!important;margin-bottom:6px!important;padding:0!important;list-style:none!important;display:block;border-top:1px solid var(--bd);padding-top:10px!important}.pri-tier-label::before{display:none!important}.pri-tier-label:first-child{margin-top:0!important;border-top:none;padding-top:0!important}.pri-tier-label.commercial{color:#B72C73}.pri-tier-label.execution{color:var(--ts)}.pri-tier-label.open-loops{color:#F5A524}
-.pri-decisions-tiered>li:not(.pri-tier-label){padding-left:0!important}.pri-decisions-tiered>li:not(.pri-tier-label)::before{display:none!important;content:""!important}.pri-bullets{list-style:none!important;padding-left:0!important;margin:6px 0 0 0!important}.pri-bullets li{position:relative!important;padding-left:14px!important;margin:3px 0!important;font-size:13px!important;color:var(--ts)!important;line-height:1.55!important;font-weight:400!important}.pri-bullets li::before{content:"\2022"!important;position:absolute;left:2px;top:0;color:var(--pink-dark)!important;font-weight:700;font-size:13px}
-.pri-action-item{margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--bd)}
-.pri-action-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
-.pri-action-item .pa-task{font-size:13px;color:var(--tx);font-weight:600;line-height:1.4;margin-bottom:4px}
-.pri-action-item .pa-owner{display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:700;color:var(--ts);background:var(--s2);border:1px solid var(--bd);border-radius:3px;padding:2px 7px}
-.pri-action-item .pa-owner::before{content:"→";color:var(--pink);font-size:13px}
-.pri-upcoming-item{margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--bd);font-size:13px;cursor:pointer;border-radius:4px;transition:background .12s}
-.pri-upcoming-item:hover{background:var(--pink-light)}
-.pri-upcoming-item:hover .pri-upcoming-name{color:var(--pink)}
-.pri-upcoming-item:hover .pri-upcoming-sub{color:var(--tx)}
-.pri-upcoming-date{font-weight:800;color:var(--pink);font-size:12px;margin-bottom:1px}
-.pri-upcoming-name{font-weight:600;color:var(--tx);line-height:1.3}
-.pri-upcoming-sub{font-size:12px;color:var(--ts);margin-top:1px}
-@media(max-width:700px){.priorities-inner{grid-template-columns:1fr}.pri-col{border-right:none;border-bottom:1px solid var(--bd)}.pri-col:last-child{border-bottom:none}}
+.decision-card{background:#FDF6EC;border-left:3px solid var(--yellow);border-radius:6px;padding:12px 14px;margin-bottom:10px;}
+.decision-title{font-weight:700;font-size:14px;}
+.decision-detail{font-size:13px;color:var(--text-secondary);margin-top:2px;}
 
-/* DECISIONS NEEDED COLUMN */
-.pri-decision-item{margin-bottom:10px;padding:8px 10px;background:var(--yelbg);border-left:3px solid var(--yel);border-radius:5px}
-.pri-decision-item .pd-text{font-size:13px;color:var(--tx);font-weight:600;line-height:1.4}
-.pri-decision-item .pd-meta{font-size:13px;color:var(--ts);margin-top:3px;font-weight:500}
-.pri-decision-empty{font-size:13px;color:var(--ts);font-style:italic;padding:6px 0}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;}
+@media (max-width:900px){.three-col{grid-template-columns:1fr;} .kpi-row{grid-template-columns:1fr 1fr;}}
 
-/* CALENDAR TAB */
-.cal-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-@media(max-width:980px){.cal-wrap{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:640px){.cal-wrap{grid-template-columns:1fr}}
-.cal-month{background:var(--surface);border:1px solid var(--bd);border-radius:10px;padding:14px 16px}
-.cal-month-title{font-size:13px;font-weight:800;color:var(--pink-dark);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--bd)}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
-.cal-dow{font-size:12px;font-weight:700;color:var(--ts);text-align:center;padding-bottom:4px;text-transform:uppercase}
-.cal-day{position:relative;min-height:42px;border-radius:5px;background:var(--bg);padding:3px 4px;font-size:13px;color:var(--ts)}
-.cal-day.blank{background:transparent}
-.cal-day.has-launch{background:var(--pink-light);cursor:pointer;border:1px solid rgba(214,56,138,.25)}
-.cal-day.has-launch:hover{background:#F8C9DE}
-.cal-day .cdn{font-weight:700;color:var(--tx)}
-.cal-day.has-launch .cdn{color:var(--pink-dark)}
-.cal-launch-dot{display:block;font-size:11px;line-height:1.25;color:var(--pink-dark);font-weight:700;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cal-launch-more{font-size:11px;color:var(--pink-dark);font-weight:700}
-.cal-legend{display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:12px;color:var(--ts)}
-.cal-legend-swatch{width:11px;height:11px;border-radius:3px;background:var(--pink-light);border:1px solid rgba(214,56,138,.25);display:inline-block}
-.cal-day.is-today{outline:2px solid var(--pink);outline-offset:-2px}
+.bulletin-blurb{background:var(--pink-light);border-radius:10px;padding:16px 20px;margin-bottom:24px;font-size:14px;color:var(--text-primary);line-height:1.5;}
 
-/* TODAY'S FOCUS HEADLINES */
-.focus-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:0 32px 16px}
-@media(max-width:780px){.focus-row{grid-template-columns:1fr}}
-.focus-card{border-radius:10px;padding:16px 20px;border-left:4px solid}
-.focus-card.win{background:#EEFBF3;border-color:var(--green)}
-.focus-card.attn{background:#FDF1E7;border-color:var(--yellow)}
-.focus-label{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
-.focus-card.win .focus-label{color:var(--green)}
-.focus-card.attn .focus-label{color:var(--yellow)}
-.focus-title{font-size:17px;font-weight:700;color:var(--tx);line-height:1.3;margin-bottom:4px}
-.focus-sub{font-size:12px;color:var(--ts)}
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{text-align:left;padding:10px 12px;font-size:11px;text-transform:uppercase;letter-spacing:0.03em;color:var(--text-secondary);border-bottom:2px solid var(--border);white-space:nowrap;}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+tr.month-sep td{background:var(--surface-2);font-weight:700;cursor:pointer;padding:10px 12px;}
+.month-chevron{transition:transform .15s;display:inline-block;}
+.month-chevron.open{transform:rotate(90deg);}
+.month-rows{display:none;}
+.month-rows.open{display:table-row-group;}
+.status-badge{display:inline-block;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:700;}
+.status-Live{background:#E7F9EF;color:var(--green);}
+.status-Planned{background:#EFF3FE;color:var(--blue);}
+.status-Done{background:var(--surface-2);color:var(--text-secondary);}
+.status-Progress{background:#FFF6E5;color:var(--yellow);}
+.status-Hold{background:#FDF0F0;color:var(--red);}
+.tag{display:inline-block;background:var(--pink-light);color:var(--pink-dark);font-size:11px;padding:2px 8px;border-radius:8px;margin:2px 3px 2px 0;}
+.half-tag{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:var(--surface-2);color:var(--text-secondary);}
+.notes-toggle{color:var(--pink);cursor:pointer;font-size:12px;font-weight:600;}
+.notes-full{display:none;white-space:pre-wrap;margin-top:6px;font-size:12px;color:var(--text-secondary);}
+.notes-full.open{display:block;}
 
-/* KPI ROW */
-.kpi-row{display:flex;gap:8px;padding:14px 32px;overflow-x:auto}
-.kpi{background:var(--surface);border:1px solid var(--bd);border-radius:10px;padding:12px 16px;min-width:120px;flex:1}
-.kpi.clickable{cursor:pointer;transition:.15s}.kpi.clickable:hover{border-color:var(--pink);box-shadow:0 2px 12px rgba(214,56,138,.1)}
-.kpi .lab{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--ts);font-weight:700}
-.kpi .val{font-size:26px;font-weight:700;margin-top:2px;line-height:1}
-.kpi .sub{font-size:12px;color:var(--ts);margin-top:2px}
-.kpi.red .val{color:var(--red)}.kpi.yel .val{color:var(--yel)}.kpi.pink .val{color:var(--pink)}
-.kpi.next-launch{flex:2;min-width:220px}
-.kpi.next-launch .nl-name{font-size:18px;font-weight:800;color:var(--tx);line-height:1.1;margin:4px 0 6px}
-.kpi.next-launch .nl-meta{display:flex;gap:12px;flex-wrap:wrap}
-.kpi.next-launch .nl-chip{font-size:12px;font-weight:600;color:var(--ts);background:var(--s2);border:1px solid var(--bd);border-radius:4px;padding:2px 7px}
-.kpi.next-launch .nl-chip.days{color:var(--pink);background:var(--pink-light);border-color:var(--pink-light)}
-
-/* EXPAND PANELS */
-.expand-panel{display:none;margin:0 32px 10px;background:var(--surface);border:1px solid var(--bd);border-radius:10px;padding:14px 18px;animation:fadeIn .2s}
-.expand-panel.open{display:block}
-.expand-panel h4{font-size:12px;font-weight:700;color:var(--pink);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
-.empty-state{padding:18px 0;text-align:left}.empty-msg{font-size:14px;color:var(--tp);font-weight:500;margin-bottom:6px}.empty-sub{font-size:12px;color:var(--ts);font-style:italic;line-height:1.5}
-.mi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.mi-item{font-size:13px;padding:8px 10px;background:var(--bg);border-radius:6px;border-left:3px solid var(--yel)}
-.bl-item{font-size:13px;padding:8px 10px;background:var(--redbg);border-radius:6px;border-left:3px solid var(--red);margin-bottom:6px}
-.res-item{font-size:13px;padding:8px 10px;background:var(--grnbg);border-radius:6px;border-left:3px solid var(--grn);margin-bottom:6px}
-.mi-drop{font-weight:600;margin-bottom:2px}.mi-what{color:var(--tm);line-height:1.5}
-.mi-note{font-size:12px;color:var(--ts);font-style:italic;margin-bottom:8px}
-.grn-line{color:var(--grn)}
-@keyframes fadeIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
-
-/* PRIORITIES */
-
-/* ── LAUNCHING THIS WEEK STRIP ── */
-.week-strip{display:flex;align-items:center;gap:10px;padding:9px 32px;background:var(--pink-light);border-bottom:1.5px solid rgba(214,56,138,.15);overflow-x:auto;flex-wrap:nowrap}
-.week-strip-label{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--pink);white-space:nowrap;margin-right:4px}
-.week-chip{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px solid rgba(214,56,138,.2);border-radius:20px;padding:4px 10px;cursor:pointer;transition:border-color .15s;white-space:nowrap}
-.week-chip:hover{border-color:var(--pink)}
-.week-chip-name{font-size:13px;font-weight:700;color:var(--tx)}
-.week-chip-date{font-size:12px;color:var(--pink);font-weight:600}
-.week-chip-days{font-size:13px;color:var(--ts)}
-.week-empty{font-size:13px;color:var(--tx);font-style:italic}
-/* ── RECENTLY DROPPED COLLAPSE ── */
-.rd-sep{cursor:pointer;user-select:none}
-.rd-sep td{width:100%;display:table-cell;box-sizing:border-box}
-.rd-chevron{font-size:16px;font-weight:700;color:var(--ts);transition:transform .2s;display:inline-block}
-.rd-chevron.open{transform:rotate(90deg)}
-.rd-rows{display:none}
-.rd-rows.open{display:table-row-group}
-/* suppress tooltips in recently dropped */
-.recently-dropped-sep ~ tr .tip-box{display:none!important}
-.h1-strategy{margin:0 0 0 0;background:var(--surface);border-bottom:1px solid var(--bd);}
-.h1-header{display:flex;align-items:center;justify-content:space-between;padding:12px 32px;cursor:pointer;user-select:none;}
-.h1-header:hover{background:var(--s2)}
-.h1-title{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;color:var(--tx);letter-spacing:-.1px}
-.h1-icon{color:var(--pink);font-size:16px}
-.h1-meta{display:flex;align-items:center;gap:14px;font-size:13px;color:var(--ts)}
-.h1-sub{background:var(--s2);border:1px solid var(--bd);padding:2px 8px;border-radius:4px}
-.h1-chevron{color:var(--pink);font-size:20px;font-weight:700;transition:transform .2s;display:inline-block}
-.h1-chevron.open{transform:rotate(90deg)}
-.h1-body{display:none;padding:0 32px 20px}
-.h1-body.open{display:block}
-.h1-pillars{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding-top:16px}
-@media(max-width:900px){.h1-pillars{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:560px){.h1-pillars{grid-template-columns:1fr}}
-.h1-pillar{border-radius:8px;padding:14px 16px;border:1px solid var(--bd)}
-.pillar-summer{border-color:#3A0A1060;background:#FAF5F6;border-left:4px solid #3A0A10}
-.pillar-fanstation{border-color:#9DB5E860;background:#F4F7FD;border-left:4px solid #9DB5E8}
-.pillar-merch{border-color:#F86FA060;background:#FEF5F8;border-left:4px solid #F86FA0}
-.pillar-bestsellers{border-color:#32323260;background:#F5F5F5;border-left:4px solid #323232}
-.h1-pillar-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--ts);margin-bottom:4px}
-.pillar-summer .h1-pillar-label{color:#3A0A10}
-.pillar-fanstation .h1-pillar-label{color:#5A7EC0}
-.pillar-merch .h1-pillar-label{color:#D45080}
-.pillar-bestsellers .h1-pillar-label{color:#323232}
-.h1-pillar-name{font-size:16px;font-weight:800;color:var(--tx);margin-bottom:6px;letter-spacing:-.2px}
-.h1-pillar-desc{font-size:13px;color:var(--ts);line-height:1.5;margin-bottom:10px}
-.h1-pillar-drops{font-size:12px;color:var(--ts);display:flex;flex-wrap:wrap;gap:4px;align-items:center}
-.h1-drop-tag{background:var(--s2);border:1px solid var(--bd);border-radius:3px;padding:1px 6px;font-weight:600;color:var(--tx);white-space:nowrap}
-
-/* ── INFO BUBBLE ── */
-/* ── HOVER TOOLTIPS ── */
-.tip-wrap{position:relative;display:inline-block;overflow:visible}
-.tip-wrap .tip-box{
-  visibility:hidden;opacity:0;
-  position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
-  background:#fff;
-  border-radius:7px;padding:8px 11px;
-  width:196px;pointer-events:none;
-  transition:opacity .15s;z-index:900;
-  box-shadow:0 4px 14px rgba(0,0,0,.11);
-  border:1.5px solid #ddd;
-}
-.tip-wrap:hover .tip-box{visibility:visible;opacity:1}
-.tip-box .tip-arrow{display:block;position:absolute;top:100%;left:50%;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent}
-.tip-title{font-size:13px;font-weight:800;display:block;margin-bottom:3px}
-.tip-body{font-size:12px;line-height:1.45;display:block}
-/* drop tag links */
-.h1-drop-tag{background:var(--s2);border:1px solid var(--bd);border-radius:3px;padding:1px 6px;font-weight:600;color:var(--tx);white-space:nowrap;cursor:pointer;text-decoration:none;display:inline-block}
-.h1-drop-tag:hover{background:var(--pink-light);color:var(--pink-dark);border-color:rgba(183,44,115,.3)}
-
-/* TABS */
-.tabs{display:flex;padding:0 32px;border-bottom:1px solid var(--bd);background:var(--surface);gap:2px;position:sticky;top:var(--topbar-h);z-index:90}
-.tab{padding:10px 16px;font-size:14px;font-weight:500;color:var(--ts);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1.5px;transition:.15s;white-space:nowrap}
-.tab:hover{color:var(--tx)}.tab.active{color:var(--pink);border-bottom-color:var(--pink);font-weight:600}
-.panel{display:none;padding:16px 32px}.panel.active{display:block}
-
-/* ── DATE BADGES — no dot, full month, tight padding, prominent text ── */
-.date-badge{
-  display:inline-block;
-  font-size:13px;font-weight:700;
-  padding:4px 8px;
-  border-radius:5px;
-  white-space:nowrap;
-  border:1.5px solid transparent;
-  font-family:'DM Sans',sans-serif;
-  letter-spacing:-.1px;
-  line-height:1.2;
-}
-.date-badge.grn{background:var(--grnbg);color:var(--grn);border-color:var(--grnbd)}
-.date-badge.yel{background:var(--yelbg);color:var(--yel);border-color:var(--yelbd)}
-.date-badge.red{background:var(--redbg);color:var(--red);border-color:var(--redbd)}
-.date-badge.neu{background:var(--neubg);color:var(--neu);border-color:var(--neubd)}
-.date-col{display:flex;flex-direction:column;gap:3px;width:110px}
-.date-label{font-size:12px;color:var(--ts);text-transform:uppercase;letter-spacing:.4px;font-weight:700}
-
-/* TIER + STATUS */
-.tier{font-size:13px;font-weight:700;padding:2px 7px;border-radius:4px;text-transform:uppercase;letter-spacing:.3px;display:inline-block}
-.tier.full{background:var(--blubg);color:var(--blu)}.tier.light{background:var(--goldbg);color:var(--gold)}.tier.live-only{background:var(--s2);color:var(--ts)}.tier.strategic{background:var(--pink-light);color:var(--pink)}.tier.tbd{background:var(--redbg);color:var(--red)}
-.st{font-size:13px;font-weight:600;padding:2px 8px;border-radius:10px;display:inline-block;letter-spacing:.2px}
-.st.live{background:var(--grnbg);color:var(--grn)}.st.in-progress{background:var(--yelbg);color:var(--yel)}.st.planned{background:var(--s2);color:var(--ts)}
-
-/* ── FLAG COLUMN — single status dot ── */
-.flag-dot{display:inline-block;width:10px;height:10px;border-radius:50%;cursor:pointer;flex-shrink:0}
-.flag-dot.clean{display:none}
-.flag-dot.missing{display:none}
-.flag-dot.blocked{background:var(--red)}
-.flag-dot.ok{display:none}
-.launch-row td:nth-child(4){width:100px;max-width:100px}
-.launch-row td:nth-child(5){width:90px;max-width:90px}
-.launch-row td:nth-child(6){width:36px;max-width:36px}
-.flag-warn{font-size:16px;cursor:pointer;line-height:1}
-/* keep old flag class for expand panels */
-.flag{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;padding:3px 7px;border-radius:5px;white-space:nowrap}
-.flag.blocked{background:var(--redbg);color:var(--red)}
-.flag.missing{background:var(--yelbg);color:var(--yel)}
-.flag.clean{background:var(--grnbg);color:var(--grn)}
-.flag-icon{font-size:12px;font-weight:800}
-
-/* PROMO */
-.promo-badge{font-size:13px;font-weight:700;padding:2px 7px;border-radius:4px;background:var(--pink-light);color:var(--pink-dark);text-transform:uppercase;letter-spacing:.3px;display:inline-block;margin-left:5px}
-
-/* METRICS COLUMN — compact in row */
-.metrics-cell{font-size:13px;color:var(--tm);min-width:140px}
-.metrics-cell .m-line{padding-left:10px;position:relative;margin:2px 0;line-height:1.4}
-.metrics-cell .m-line::before{content:"•";position:absolute;left:0;color:var(--ts)}
-.metrics-cell .m-line.tbd{color:var(--ts);font-style:italic}
-
-/* ── ALL LAUNCHES TABLE — sticky header inside its own scroll container ── */
-.table-scroll{
-  overflow:auto;
-  width:100%;
-  max-height:calc(100vh - 280px);
-  border:1px solid var(--bd);
-  border-radius:8px;
-}
-.launches-table{width:100%;border-collapse:separate;border-spacing:0;min-width:860px;table-layout:fixed}
-.launches-table thead{position:sticky;top:0;z-index:15}
-.launches-table thead th{
-  text-align:left;padding:8px 10px;
-  font-size:13px;font-weight:700;color:var(--ts);
-  text-transform:uppercase;letter-spacing:.5px;
-  border-bottom:1px solid var(--bd);
-  background:var(--s2);white-space:nowrap;
-}
-/* Sticky columns */
-.launches-table thead th:nth-child(1),
-.launches-table thead th:nth-child(2),
-.launches-table thead th:nth-child(3){
-  position:sticky;z-index:17;background:var(--s2);
-}
-.launches-table thead th:nth-child(1){left:0}
-.launches-table thead th:nth-child(2){left:120px}
-.launches-table thead th:nth-child(3){left:240px;border-right:1.5px solid var(--bd)}
-
-.launch-row{cursor:pointer;transition:opacity .15s}
-.launch-row td{
-  padding:10px 10px;border-bottom:1px solid var(--bd);
-  vertical-align:middle;background:var(--surface);
-}
-.launch-row:hover td{background:var(--pink-light)}
-.launch-row.open td{background:var(--pink-light)}
-.launch-row:hover td .date-label,.launch-row.open td .date-label{color:var(--tx)}
-.launch-row.strategic-row td:first-child{border-left:3px solid #1A4DB3}
-.launch-row.faded{opacity:.45}
-.launch-row.faded:hover{opacity:.7}
-
-/* Sticky body cells */
-.launch-row td:nth-child(1),
-.launch-row td:nth-child(2),
-.launch-row td:nth-child(3){
-  position:sticky;z-index:5;
-}
-.launch-row td:nth-child(1){left:0;min-width:120px;width:120px}
-.launch-row td:nth-child(2){left:120px;min-width:120px;width:120px}
-.launch-row td:nth-child(3){left:240px;border-right:1.5px solid var(--bd)}
-.launch-row:hover td:nth-child(1),
-.launch-row:hover td:nth-child(2),
-.launch-row:hover td:nth-child(3){background:var(--pink-light)}
-.launch-row.open td:nth-child(1),
-.launch-row.open td:nth-child(2),
-.launch-row.open td:nth-child(3){background:var(--pink-light)}
-.launch-row.faded td:nth-child(1),
-.launch-row.faded td:nth-child(2),
-.launch-row.faded td:nth-child(3){background:var(--surface)}
-.launch-row.faded:hover td:nth-child(1),
-.launch-row.faded:hover td:nth-child(2),
-.launch-row.faded:hover td:nth-child(3){background:var(--pink-light)}
-
-.drop-name{font-weight:700;font-size:14.5px;display:flex;align-items:center;gap:6px;min-width:160px}
-.drop-chevron{font-size:14px;color:var(--ts);transition:transform .2s;display:inline-block;flex-shrink:0}
-.launch-row.open .drop-chevron{transform:rotate(90deg);color:var(--pink)}
-
-/* ACCORDION */
-.detail-row{display:none}
-.detail-row.open{display:table-row}
-.detail-row td{padding:0;border-bottom:2px solid var(--pink-light);background:var(--surface)}
-.detail-inner{padding:16px 20px 18px;background:#fff;border-left:3px solid var(--pink)}
-.overview-box{padding:10px 14px;background:var(--bg);border-radius:7px;margin-bottom:14px;font-size:14px;line-height:1.6;color:var(--tx)}
-.ov-outcome{margin-top:8px;padding-top:8px;border-top:1px solid var(--bd);font-size:13px;color:var(--ts);line-height:1.5}
-.ov-resources{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}.ov-resource-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:#DDEAF8;color:#1A4DB3;border-radius:14px;font-size:13px;font-weight:600;text-decoration:none;letter-spacing:.2px;transition:all .15s}.ov-resource-pill:hover{background:#1A4DB3;color:#FFFFFF}.ov-resource-pill::after{content:"\2197";font-size:12px;opacity:.7}.ov-resource-pill:hover::after{opacity:1}.ov-outcome strong{color:var(--pink-dark);font-weight:600}
-.ov-sku{font-weight:700}.ov-topic{font-weight:700}
-.detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:14px}
-.detail-section{min-width:0}.detail-section h5{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--pink);margin-bottom:7px}
-.detail-section p{font-size:13px;color:var(--tm);line-height:1.5}
-
-/* Ecomm placement tags — bigger and clearer */
-.place-list{display:grid;grid-template-rows:repeat(4,auto);grid-auto-flow:column;grid-auto-columns:auto;gap:5px;align-items:start;justify-content:start;margin-top:2px}
-.place-notes{list-style:none;padding:0;margin:7px 0 0;border-top:1px solid var(--bd);padding-top:6px}
-.place-notes li{font-size:13px;color:var(--tm);padding-left:12px;position:relative;margin:3px 0;line-height:1.4}
-.place-notes li::before{content:"•";position:absolute;left:0;color:var(--ts)}
-.place-tag{
-  font-size:13px;font-weight:700;
-  padding:4px 11px;border-radius:20px;
-  background:var(--pink-light);color:var(--pink-dark);
-  white-space:nowrap;line-height:1.4;
-  border:1.5px solid rgba(183,44,115,.2);
-}
-
-/* Demand — reverted large badge, correct font, bigger topic text */
-.demand-expanded{display:flex;align-items:flex-start;gap:12px}
-.meta-ads-badge{
-  flex-shrink:0;
-  font-size:28px;font-weight:700;font-family:'DM Sans',sans-serif;
-  color:var(--pink);background:var(--pink-light);
-  border-radius:8px;padding:8px 14px;text-align:center;line-height:1.1;
-  min-width:70px;
-}
-.meta-ads-badge span{display:block;font-size:12px;font-weight:700;color:var(--pink-dark);text-transform:uppercase;letter-spacing:.4px;font-family:'DM Sans',sans-serif;margin-top:2px}
-.demand-topics-list{list-style:none;padding:0;margin-top:2px}
-.demand-topics-list li{font-size:14px;color:var(--tm);padding-left:12px;position:relative;margin:3px 0;line-height:1.4}
-.demand-topics-list li::before{content:"•";position:absolute;left:0;color:var(--ts)}
-.crm-badge{display:flex;align-items:center;justify-content:center;flex-direction:column;min-width:52px;min-height:52px;background:#DDEAF8;border-radius:8px;padding:6px 10px;text-align:center;flex-shrink:0}
-.crm-badge .crm-num{font-size:28px;font-weight:700;color:#1A4DB3;font-family:'DM Sans',sans-serif;line-height:1}
-.crm-badge .crm-label{display:block;font-size:12px;font-weight:700;color:#1A4DB3;text-transform:uppercase;letter-spacing:.4px;font-family:'DM Sans',sans-serif;margin-top:2px}
-.demand-stack{display:flex;flex-direction:column;gap:12px}
-.demand-row{display:flex;align-items:flex-start;gap:12px}
-.ov-links{display:flex;gap:16px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
-.ov-link{font-size:13px;font-weight:600;color:var(--pink);text-decoration:none;display:flex;align-items:center;gap:4px}
-.ov-link:hover{color:var(--pink-dark);text-decoration:underline}
-.ov-link::before{content:"↗";font-size:12px}
-
-.miss-item{font-size:13px;color:var(--yel);padding:2px 0;display:flex;align-items:flex-start;gap:5px;font-weight:500}
-.miss-item::before{content:"!";font-weight:800;font-size:13px;margin-top:2px;background:var(--yelbg);border-radius:3px;padding:0 3px}
-.risk-item{font-size:13px;color:var(--tm);padding:1px 0;padding-left:12px;position:relative}
-.risk-item::before{content:"•";position:absolute;left:0;color:var(--ts)}
-.detail-footer{display:flex;gap:20px;align-items:center;padding-top:10px;border-top:1px solid var(--bd);margin-top:4px;flex-wrap:wrap}
-.detail-footer-item{font-size:12px;color:var(--ts)}.detail-footer-item strong{color:var(--tx);font-weight:600}
-.detail-promo{font-size:13px;color:var(--tm)}
-
-/* Detailed metrics in accordion */
-.detail-missing{background:#FDFAF5;border:1px solid var(--bd);border-radius:7px;padding:10px 14px;margin-bottom:12px}
-.detail-missing h5{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--yel);margin-bottom:7px}
-.detail-missing-inner{display:flex;flex-wrap:wrap;gap:6px 20px}
-.detail-missing{background:#FDFAF5;border:1px solid #EEE0C0;border-radius:7px;padding:10px 14px;margin-bottom:12px}
-.detail-missing h5{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--yel);margin-bottom:7px}
-.detail-missing-inner{display:flex;flex-wrap:wrap;gap:4px 20px}
-.metrics-template{list-style:none;padding:0;margin:0}
-.metrics-template li{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;padding:4px 0;border-bottom:1px solid var(--bd);gap:8px}
-.metrics-template li:last-child{border-bottom:none}
-.metrics-template .m-label{color:var(--ts);font-weight:500;flex-shrink:0}
-.metrics-template .m-val{color:var(--tx);font-weight:700;text-align:right}
-.metrics-template .m-val.tbd{color:var(--ts);font-weight:400;font-style:italic}
-.first-analysis-due{display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:700;color:var(--ts);background:var(--s2);border:1px solid var(--bd);border-radius:4px;padding:2px 7px;margin-bottom:10px}
-.warn-pill{display:inline-block;font-size:13px;margin-right:4px;vertical-align:baseline}
-.first-analysis-due.past{color:var(--yel);background:var(--yelbg);border-color:var(--yelbg)}
-.first-analysis-due::before{content:"📅";font-size:13px}
-.detail-metrics-list{list-style:none;padding:0}
-.detail-metrics-list li{font-size:13px;color:var(--tm);padding-left:12px;position:relative;margin:3px 0}
-.detail-metrics-list li::before{content:"•";position:absolute;left:0;color:var(--ts)}
-
-/* ── SECTION HEADERS — dusty pink ── */
-.month-sep td{
-  background:var(--pink-dust);
-  padding:8px 12px;
-  font-size:12px;font-weight:700;
-  color:var(--pink-dark);
-  text-transform:uppercase;letter-spacing:.8px;
-  cursor:default;
-  border-left:3px solid var(--pink);
-}
-.month-sep:hover td{background:var(--pink-dust)}
-.month-sep.month-acc{cursor:pointer;user-select:none}
-.month-sep.month-acc:hover td{background:#EAD5E6}
-.month-chevron{font-size:16px;font-weight:700;color:var(--pink-dark);transition:transform .2s;display:inline-block}
-.month-chevron.open{transform:rotate(90deg)}
-.month-rows{display:none}
-.month-rows.open{display:table-row-group}
-
-/* DEMAND TAB */
-.batch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
-.batch-card{background:var(--surface);border:1px solid var(--bd);border-radius:8px;padding:12px}
-.batch-card.urgent{border-color:var(--yel)}
-.batch-card h4{font-size:14px;font-weight:600;color:var(--pink);margin-bottom:6px}
-.batch-card ul{list-style:none;font-size:13px;color:var(--tm)}.batch-card ul li{margin:2px 0;padding-left:10px;position:relative}.batch-card ul li::before{content:"•";position:absolute;left:0;color:var(--ts)}
-.type-tag{font-size:13px;font-weight:600;padding:1px 6px;border-radius:3px;display:inline-block;letter-spacing:.2px}
-.type-tag.campaign{background:var(--blubg);color:var(--blu)}.type-tag.always-on{background:var(--s2);color:var(--ts)}.type-tag.new-angle{background:rgba(168,85,247,.1);color:#a855f7}.type-tag.sub-channel{background:var(--goldbg);color:var(--gold)}
-.demand-table{width:100%;border-collapse:collapse;font-size:13px}
-.demand-table thead{position:sticky;top:calc(var(--topbar-h) + 42px);z-index:80}
-.demand-table thead th{text-align:left;padding:7px 10px;font-size:13px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--bd);background:var(--s2)}
-.demand-table tbody td{padding:7px 10px;border-bottom:1px solid var(--bd);background:var(--surface);vertical-align:top}
-.month-header-row td{background:var(--pink-dust);font-weight:700;font-size:14px;color:var(--pink-dark);padding:9px 10px;border-left:3px solid var(--pink)}
-.ads-num{font-size:15px;font-weight:700;text-align:center;color:var(--pink)}
-
-/* ECOMM */
-.ecomm-table{width:100%;border-collapse:collapse;font-size:13px}
-.ecomm-table thead{position:sticky;top:calc(var(--topbar-h) + 42px);z-index:80}
-.ecomm-table thead th{text-align:left;padding:7px 10px;font-size:13px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--bd);background:var(--s2)}
-.ecomm-table tbody td{padding:8px 10px;border-bottom:1px solid var(--bd);background:var(--surface);vertical-align:middle}
-.ecomm-st{font-size:12px;font-weight:600}
-.ecomm-st.done{color:var(--grn)}.ecomm-st.pending{color:var(--ts)}.ecomm-st.blocked{color:var(--red)}
-
-/* MARKETS */
-.market-section{margin-bottom:22px}
-.market-label{font-size:15px;font-weight:700;color:var(--pink);padding:7px 12px;background:var(--pink-light);border-radius:6px;margin-bottom:10px;display:inline-block}
-.market-card{background:var(--surface);border:1px solid var(--bd);border-radius:8px;padding:14px 16px;margin-bottom:10px}
-.market-card h4{font-size:14px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:8px}
-.mc-status{font-size:12px;padding:2px 8px;border-radius:10px}
-.market-card ul{list-style:none;font-size:13px;color:var(--tm);padding:0}.market-card ul li{margin:2px 0;padding-left:10px;position:relative}.market-card ul li::before{content:"•";position:absolute;left:0;color:var(--ts)}
-.mc-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:10px}
-.mc-col h5{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--ts);margin-bottom:5px}
-
-/* CONTENT PROD */
-.cp-table{width:100%;border-collapse:collapse;font-size:13px}
-.cp-table thead{position:sticky;top:calc(var(--topbar-h) + 42px);z-index:80}
-.cp-table thead th{text-align:left;padding:7px 10px;font-size:13px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--bd);background:var(--s2)}
-.cp-table tbody td{padding:7px 10px;border-bottom:1px solid var(--bd);background:var(--surface);vertical-align:middle}
-.sev{font-size:12px;font-weight:600;padding:2px 7px;border-radius:4px;display:inline-block}
-.sev.red{background:var(--redbg);color:var(--red)}.sev.yel{background:var(--yelbg);color:var(--yel)}.sev.grn{background:var(--grnbg);color:var(--grn)}
-
-.footnote{padding:20px 32px;font-size:12px;color:var(--ts);font-style:italic}
-
-@media(max-width:900px){
-  .topbar,.kpi-row,.priorities,.tabs,.panel,.footnote,.expand-panel{padding-left:14px;padding-right:14px}
-  .batch-grid,.detail-grid,.mc-grid{grid-template-columns:1fr}
-  .mi-grid{grid-template-columns:1fr 1fr}
-}
-
-.wc-archive{margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
-.wc-archive summary{cursor:pointer;color:var(--text-secondary);font-size:13px;font-weight:600;padding:6px 0;list-style:none;text-transform:uppercase;letter-spacing:0.04em}
-.wc-archive summary::-webkit-details-marker{display:none}
-.wc-archive summary::before{content:'\25B8';display:inline-block;margin-right:8px;transition:transform 0.2s}
-.wc-archive[open] summary::before{transform:rotate(90deg)}
-.wc-archive summary:hover{color:var(--text-primary)}
-.wc-archive-content{padding-top:12px}
-.wc-archive-week{margin-bottom:18px;padding:14px;background:var(--surface-2);border-radius:8px;border-left:3px solid var(--border)}
-.wc-archive-header{font-weight:700;font-size:13px;color:var(--text-primary);margin-bottom:10px;letter-spacing:0.02em}
-.wc-archive-week ul.pri-decisions-tiered{margin:0;padding-left:0;list-style:none}
-.wc-archive-week ul.pri-decisions-tiered li{margin-bottom:6px;font-size:13px;line-height:1.5;color:var(--text-secondary)}
-.wc-archive-week ul.pri-decisions-tiered li strong{color:var(--text-primary)}
-.wc-archive-week ul.pri-decisions-tiered li.pri-tier-label{font-size:13px;text-transform:uppercase;font-weight:700;letter-spacing:0.06em;margin-top:10px;margin-bottom:6px;color:var(--text-secondary)}
-.wc-archive-week ul.pri-decisions-tiered li.pri-tier-label.commercial{color:var(--pink-dark)}
-.wc-archive-week ul.pri-decisions-tiered li.pri-tier-label.execution{color:var(--text-secondary)}
-.wc-archive-week ul.pri-decisions-tiered li.pri-tier-label.open-loops{color:var(--yellow)}
-
-.es-title{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:2px solid var(--pink-light)}
-.es-title-text{font-size:15px;font-weight:700;color:var(--text-primary);letter-spacing:0.01em}
-.es-title-tag{font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;color:var(--pink-dark);background:var(--pink-light);padding:3px 9px;border-radius:10px}
-.exec-summary{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin-bottom:18px}
-.es-body{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;border-right:0}
-.es-col{min-width:0}
-.es-col+.es-col{border-left:1.5px solid var(--bd);padding-left:24px}
-.es-row{display:flex;align-items:baseline;gap:14px;padding:6px 0;border-bottom:1px solid var(--surface-2)}
-.es-row:last-of-type{border-bottom:none;padding-bottom:10px}
-.es-value.blank{color:var(--ts);font-style:italic}
-@media(max-width:700px){.es-body{grid-template-columns:1fr}.es-col+.es-col{border-left:none;padding-left:0;border-top:1px solid var(--bd);padding-top:8px;margin-top:8px}}
-.es-label{min-width:78px;color:var(--pink-dark);font-size:13px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;flex-shrink:0}
-.es-value{color:var(--text-primary);font-size:14px;line-height:1.5;flex:1}
-.es-stats{display:flex;flex-wrap:wrap;gap:0;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);background:var(--surface-2);margin-left:-22px;margin-right:-22px;padding-left:22px;padding-right:22px;border-radius:0 0 10px 10px;padding-bottom:14px;margin-bottom:-14px}
-.es-stat{display:flex;flex-direction:column;padding:0 18px;border-right:1px solid var(--border);min-width:90px}
-.es-stat:first-child{padding-left:0}
-.es-stat:last-child{border-right:none}
-.es-stat-k{color:var(--text-secondary);font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;margin-bottom:3px}
-.es-stat-v{color:var(--text-primary);font-size:13px;font-weight:600}
-.es-resources{display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
-
-/* ── SPOTLIGHT SECTION (only renders when Excel col Z has content) ── */
-.spotlight-list{list-style:none;padding:0;margin:0}
-.spotlight-list li{font-size:13px;color:var(--tx);font-weight:500;line-height:1.7;padding-left:14px;position:relative}
-.spotlight-list li::before{content:"•";position:absolute;left:0;color:var(--pink);font-weight:900}
-
-.spotlight-list{list-style:none;padding:0;margin:4px 0 0 0}
-.spotlight-list li{font-size:14px;color:var(--tx);font-weight:500;line-height:1.6;padding-left:14px;position:relative;margin:2px 0}
-.spotlight-list li::before{content:"—";position:absolute;left:0;color:var(--pink);font-weight:700}
+/* Calendar */
+.cal-month{margin-bottom:28px;}
+.cal-month h4{font-size:14px;margin-bottom:8px;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-day-label{font-size:10px;color:var(--text-secondary);text-align:center;padding:4px 0;text-transform:uppercase;}
+.cal-cell{background:var(--surface);border:1px solid var(--border);border-radius:6px;min-height:56px;padding:4px;font-size:10px;position:relative;}
+.cal-cell.empty{background:transparent;border:none;}
+.cal-daynum{font-weight:700;color:var(--text-secondary);}
+.cal-launch{background:var(--pink);color:#fff;border-radius:4px;padding:1px 4px;margin-top:2px;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div class="topbar-left">
-    <img src="https://careers.recruiteecdn.com/image/upload/production/images/A136/NXssYiZfkkQF.png" alt="Hey Harper" class="topbar-logo">
-    <div class="topbar-divider"></div>
-    <span class="topbar-title">Drop Dashboard</span>
-    <span class="updated-tag" id="updatedTag">Updated Jul 8</span>
+<div class="header">
+  <div class="header-left">
+    <span class="brand">hey harper</span>
+    <span class="title">Drop Dashboard</span>
+    <span class="updated-tag" id="updatedTag">Loading…</span>
   </div>
-  <div class="meta"><strong>H1 2026</strong><span id="metaDate">July 8, 2026</span></div>
+  <div class="header-right">
+    <strong id="metaLabel">H1+H2 2026</strong>
+    <span id="metaDate"></span>
+  </div>
 </div>
 
 <div class="tabs">
-  <div class="tab active" onclick="showTab('home')">All Launches</div>
-  <div class="tab" onclick="showTab('bulletin')">Bulletin Board</div>
-  <div class="tab" onclick="showTab('calendar')">Calendar</div>
+  <div class="tab active" data-tab="home" onclick="showTab('home')">All Launches</div>
+  <div class="tab" data-tab="bulletin" onclick="showTab('bulletin')">Bulletin Board</div>
+  <div class="tab" data-tab="calendar" onclick="showTab('calendar')">Calendar</div>
 </div>
 
-<div class="kpi-row">
-  <div class="kpi next-launch clickable" onclick="goToDrop('margarita')" style="cursor:pointer">
-    <div class="lab">Next Launch</div>
-    <div class="nl-name">Margarita Necklace</div>
-    <div class="nl-meta">
-      <span class="nl-chip">Jul 15</span>
-      <span class="nl-chip days" id="nextLaunchDays">in 5 days</span>
-      <span class="nl-chip">DFC Missing Input · SKUs 1</span>
-    </div>
-  </div>
-  <div class="kpi grn clickable" onclick="togglePanel('blockers')"><div class="lab">Blockers</div><div class="val">0</div><div class="sub">All clear — click to confirm</div></div>
-  
-  <div class="kpi"><div class="lab">Total Launches H1</div><div class="val">19</div><div class="sub">Across all tiers</div></div>
-  <div class="kpi"><div class="lab">Total Launches H2</div><div class="val">11</div><div class="sub">Per H2 Product Launches list</div></div>
+<div id="loadingMsg" class="loading">Loading dashboard data from Google Sheet…</div>
+<div id="errorMsg" style="display:none" class="panel active"></div>
+
+<div class="panel active" id="p-home" style="display:none">
+  <div class="kpi-row" id="kpiRow"></div>
+  <div class="section-title">All Launches</div>
+  <table>
+    <thead><tr>
+      <th></th><th>Drop</th><th>Status</th><th>Tier</th><th>Live on PDP</th><th>MKT Comms</th><th>Owner</th><th>Notes</th>
+    </tr></thead>
+    <tbody id="tableBody"></tbody>
+  </table>
 </div>
 
-<div class="expand-panel" id="panel-blockers">
-  <h4>Blockers — 0 active</h4>
-  <div class="empty-state">
-    <div class="empty-msg">No active blockers right now.</div>
-    <div class="empty-sub">Suspicious. Either we're crushing it or we haven't found them yet.</div>
-  </div>
-</div>
-
-<!-- ALL LAUNCHES -->
-<div class="panel active" id="p-home">
-
-<!-- THIS WEEK NEEDS ACTION -->
-<div class="week-strip" id="weekStrip">
-  <span class="week-strip-label"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--pink);margin-right:6px;vertical-align:middle"></span>This Week Needs Action</span>
-  <span class="week-empty" id="weekEmpty" style="display:none">Nothing with a live date in the next 7 days</span>
-</div>
-
-<div class="h1-strategy" id="h1Card">
-  <div class="h1-header" onclick="toggleH1()">
-    <div class="h1-title">
-      <span class="h1-icon">◈</span>
-      <span>H1 2026 — Marketing Objectives</span>
-      <span class="h1-sub">19 drops · 3 campaigns · ends Jul 30</span>
-    </div>
-    <div class="h1-meta">
-      <span class="h1-chevron" id="h1Chevron">›</span>
-    </div>
-  </div>
-  <div class="h1-body" id="h1Body">
-    <div style="font-size:12px;color:var(--tx);background:var(--s2);border-left:3px solid var(--pink);border-radius:5px;padding:8px 12px;margin-bottom:2px">This is the H1 pillar structure. Will be updated once H2 pillars are decided.</div>
-    <div class="h1-pillars">
-
-      <div class="h1-pillar pillar-merch">
-        <div class="h1-pillar-label">Merchandising Priorities</div>
-        <div class="h1-pillar-name">New Categories & Bets</div>
-        <div class="h1-pillar-desc">Drops that matter from a product and category-building perspective — new formats, price point experiments, and catalog expansions that extend Hey Harper beyond its core. These are the bets that define what the brand sells next.</div>
-        <div class="h1-pillar-drops">Served by: <span class="h1-drop-tag" onclick="goToDrop('storage')">Storage & Cases</span><span class="h1-drop-tag" onclick="goToDrop('food')">Food & Cocktails</span><span class="h1-drop-tag" onclick="goToDrop('bracD1')">Bracelets D1</span><span class="h1-drop-tag" onclick="goToDrop('bracD2')">Bracelets D2</span></div>
-      </div>
-
-      <div class="h1-pillar pillar-fanstation">
-        <div class="h1-pillar-label">Sports & Fandom Vertical</div>
-        <div class="h1-pillar-name">Hey Harper Fan Station</div>
-        <div class="h1-pillar-desc">Interest-based shopping feature launching Jun 4. Customers enter through teams, schools, and affiliations — then route into everyday Hey Harper wear. World Cup is the first major catalog activation. Fashion jewelry is competitive. Sports jewelry is not.</div>
-        <div class="h1-pillar-drops">Served by: <span class="h1-drop-tag" onclick="goToDrop('wc')">World Cup (6 SKUs)</span><span class="h1-drop-tag" onclick="goToDrop('mm')">March Madness</span></div>
-      </div>
-
-      <div class="h1-pillar pillar-bestsellers">
-        <div class="h1-pillar-label">Catalog Depth</div>
-        <div class="h1-pillar-name">Bestsellers Initiative</div>
-        <div class="h1-pillar-desc">Systematic expansion of top-performing lines rather than net-new bets. Daphne Expansion and Essentials drops are the core execution.</div>
-        <div class="h1-pillar-drops">Served by: <span class="h1-drop-tag" onclick="goToDrop('daphne')">Daphne Expansion</span><span class="h1-drop-tag" onclick="goToDrop('essentials4')">Essentials Drop 4</span><span class="h1-drop-tag" onclick="goToDrop('animals')">Animals</span></div>
-      </div>
-
-      <div class="h1-pillar pillar-summer">
-        <div class="h1-pillar-label">Commercial Anchor</div>
-        <div class="h1-pillar-name">Summer Sale 2026</div>
-        <div class="h1-pillar-desc">Jun 18 – Jul 30 (extended). Largest revenue event of the year. Tiered discounts across US, EU/UK, BR, MX. Discount architecture and creative brief TBD.</div>
-        <div class="h1-pillar-drops"></div>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-<div class="table-scroll">
-<table class="launches-table">
-<thead><tr>
-  <th style="width:120px">Live Date</th>
-  <th style="width:120px">MKT Date</th>
-  <th style="width:420px">Drop</th>
-  <th style="width:100px">Status</th>
-  <th style="width:90px">Tier</th>
-  <th style="width:36px">Flag</th>
-</tr></thead>
-
-<tbody><tr class="month-sep month-acc" onclick="toggleMonth('june')"><td colspan="6"><div style="display:flex;align-items:center;justify-content:space-between;width:100%">June <span class="month-chevron" id="month-chev-june">›</span></div></td></tr></tbody>
-<tbody class="month-rows" id="month-rows-june">
-<tr class="launch-row strategic-row" onclick="toggleDrop('summersale')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge grn">Jun 18</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge grn">Jun 18</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Summer Sale 2026 <span class="promo-badge">Sale</span></span></td>
-  <td><span class="st live">Live</span></td><td><span class="tier strategic">Strategic</span></td>
-  <td></td>
-</tr>
-<tr class="detail-row" id="detail-summersale"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">Summer Sale 2026</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">H1 hero sale — tiered discount architecture (up to 50% off)</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">Returning customers + new customer acquisition window</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">H1 commercial peak, anchors Jun + Jul combined</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Profitability — €5M Jun + Jul target locked</span></div>
-    </div>
-    <div class="es-col"><span class="es-label" style="display:block;margin-bottom:8px">Key Info</span><ul class="spotlight-list"><li>Up to 50% OFF</li><li>€5M revenue target</li><li>50% most catalog, 70% slow movers, lower % on specific segments</li><li>Extended — now ends Jul 30 (was Aug 2)</li></ul></div>
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">Promo (catalog-wide)</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Strategic</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">TBC</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">N/A</span></span>
-      
-    </div>
-  </div>
-  <div class="detail-grid">
-    <div class="detail-section"><h5>Ecomm Placements</h5><div class="place-list"><span class="place-tag">Homepage Hero</span><span class="place-tag">Promo Blocks</span><span class="place-tag">Top Bar Banner</span><span class="place-tag">Progress Bar</span><span class="place-tag">PDP Promo Blocks</span><span class="place-tag">MKT Cards</span><span class="place-tag">Collection Pages</span><span class="place-tag">Footer</span></div></div>
-    <div class="detail-section"><h5>Demand</h5><div class="demand-stack"><div class="demand-row"><div class="meta-ads-badge">35<span>Meta Ads</span></div><div class="crm-badge"><span class="crm-num">16</span><span class="crm-label">CRM</span></div></div></div></div>
-  </div>
-</div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Project lead:</strong> JD</div><div class="detail-footer-item"><strong>Plans review:</strong> May 6</div><div class="detail-footer-item"><strong>Last Updated:</strong> Jul 2 — Live, all pre-launch items resolved</div></div>
-  </div>
-</div></td></tr>
-</tbody>
-<tbody><tr class="month-sep month-acc" onclick="toggleMonth('july')"><td colspan="6"><div style="display:flex;align-items:center;justify-content:space-between;width:100%">July <span class="month-chevron open" id="month-chev-july">›</span></div></td></tr></tbody>
-<tbody class="month-rows open" id="month-rows-july">
-<tr class="launch-row" onclick="toggleDrop('universities')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge tba">Jul 9</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge tba">TBD</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Universities</span></td>
-  <td><span class="st live">Live</span></td><td><span class="tier strategic">Strategic</span></td>
-  <td></td>
-  
-</tr>
-<tr class="detail-row" id="detail-universities"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">Universities</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">University-branded jewelry vertical (sororities, athletes, frosh)</span></div>
-    <div class="es-row"><span class="es-label">Drop Name</span><span class="es-value">Collegiate Collection — site-facing name, decided Jul 8, 2026 (internal collection name stays "Universities")</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">College students + parents gifting</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">Back-to-school + new vertical exploration (Cate alignment May 18)</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Expansion — new identity-driven vertical for H2 build</span></div>
-    </div>
-    <div class="es-col"><span class="es-label" style="display:block;margin-bottom:8px">Key Info</span><ul class="spotlight-list"><li>School Pride: always-on, gifting, alumni</li><li>Universities launch included within Fan Station</li></ul></div>
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">37 SKUs</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Strategic</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">Jul 31</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">TBC</span></span>
-      
-    </div>
-  </div>
-  <div class="detail-grid">
-    <div class="detail-section"><h5>Ecomm Placements</h5><div class="place-list"><span class="place-tag">New Collegiate Collection</span><span class="place-tag">Update of the New-In Collection</span><span class="place-tag">Update of Charms Collection</span><span class="place-tag">Update of Fan Station</span></div></div>
-    <div class="detail-section"><h5>Demand</h5><div class="demand-stack"><div class="demand-row"><div class="meta-ads-badge">12<span>Meta Ads</span></div><div class="crm-badge"><span class="crm-num">1</span><span class="crm-label">CRM</span></div></div></div></div>
-    
-  </div>
-</div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Jul 10 — live, ecomm/demand updated from H2 Product Launches list, Missing + Risk cleared</div></div>
-  </div>
-</div></td></tr>
-
-<tr class="launch-row" onclick="toggleDrop('margarita')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge tba">Jul 15</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge tba">Jul 15 – August</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Margarita Necklace</span></td>
-  <td><span class="st planned">Planned</span></td><td><span class="tier light">Light</span></td>
-  <td></td>
-</tr>
-<tr class="detail-row" id="detail-margarita"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">Margarita Necklace</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">Margarita Necklace v2 — return of the original necklace Cate first designed</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">All customers</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">Return of the original necklace Cate first designed. Took 10 rounds of samples with our supplier to develop the final Margarita Necklace for the re-launch</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Not yet assigned to a H2 pillar</span></div>
-    </div>
-    <div class="es-col"><span class="es-label" style="display:block;margin-bottom:8px">Key Info</span><ul class="spotlight-list"><li>10 rounds of samples with supplier to finalize the re-launch design</li><li>MKT comms run Jul 15 through August</li></ul></div>
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">1 SKU</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Light</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">Missing Input</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">N/A</span></span>
-
-    </div>
-  </div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Jul 10</div><div class="detail-footer-item">Added from H2 2026 Product Launches list</div></div>
-  </div>
-</div></td></tr>
-
-<tr class="launch-row" onclick="toggleDrop('newbloom')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge tba">Jul 30</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge tba">August (exact date TBD)</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Bloomwave Pattern</span></td>
-  <td><span class="st planned">Planned</span></td><td><span class="tier light">Light</span></td>
-  <td></td>
-</tr>
-<tr class="detail-row" id="detail-newbloom"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">Bloomwave Pattern</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">New floral-themed jewelry pattern, part of the ongoing pattern-series expansion</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">Existing customers + bestseller cross-shoppers</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">Part of the ongoing pattern-series expansion</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Not yet assigned to a H2 pillar</span></div>
-    </div>
-    <div class="es-col"><span class="es-label" style="display:block;margin-bottom:8px">Key Info</span><ul class="spotlight-list"><li>New floral-themed jewelry pattern</li><li>Part of the ongoing pattern-series expansion</li></ul></div>
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">4 SKUs</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Light</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">Missing Input</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">N/A</span></span>
-
-    </div>
-  </div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Jul 8</div><div class="detail-footer-item">Updated from H2 2026 Product Launches list (v2)</div></div>
-  </div>
-</div></td></tr>
-
-</tbody>
-<tbody><tr class="month-sep month-acc" onclick="toggleMonth('september')"><td colspan="6"><div style="display:flex;align-items:center;justify-content:space-between;width:100%">September <span class="month-chevron" id="month-chev-september">›</span></div></td></tr></tbody>
-<tbody class="month-rows" id="month-rows-september">
-
-<tr class="launch-row" onclick="toggleDrop('monogram')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge tba">Sep 15</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge tba">N/A (no dedicated marketing push)</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Monogram Bracelet</span></td>
-  <td><span class="st planned">Planned</span></td><td><span class="tier live-only">Live-Only</span></td>
-  <td></td>
-</tr>
-<tr class="detail-row" id="detail-monogram"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">Monogram Bracelet</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">Personalized, initial-based bracelet — one of three new monogram designs launching in September</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">New-customer + bracelet category buyers</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">Second drop of monogram bracelet — proof point for personalization & varsity numbers for 2027</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Not yet assigned to a H2 pillar</span></div>
-    </div>
-    <div class="es-col"><span class="es-label" style="display:block;margin-bottom:8px">Key Info</span><ul class="spotlight-list"><li>One of three new monogram designs launching in September</li><li>Personalized, initial-based bracelet</li></ul></div>
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">3 SKUs</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Live-Only</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">Missing Input</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">N/A</span></span>
-
-    </div>
-  </div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Jul 8</div><div class="detail-footer-item">Updated from H2 2026 Product Launches list (v2)</div></div>
-  </div>
-</div></td></tr>
-
-</tbody>
-<tbody><tr class="month-sep month-acc" onclick="toggleMonth('october')"><td colspan="6"><div style="display:flex;align-items:center;justify-content:space-between;width:100%">October <span class="month-chevron" id="month-chev-october">›</span></div></td></tr></tbody>
-<tbody class="month-rows" id="month-rows-october">
-
-<tr class="launch-row" onclick="toggleDrop('wintersports')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge tba">Oct 1</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge tba">Oct 1</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Winter Sports</span></td>
-  <td><span class="st planned">Planned</span></td><td><span class="tier light">Light</span></td>
-  <td></td>
-</tr>
-<tr class="detail-row" id="detail-wintersports"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">Winter Sports</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">Winter-sports themed pieces, extending the sports category into cold-weather sports</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">Expansion of sports vertical / Fan Station</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">Seasonality / growing sports into winter months</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Not yet assigned to a H2 pillar</span></div>
-    </div>
-    <div class="es-col"><span class="es-label" style="display:block;margin-bottom:8px">Key Info</span><ul class="spotlight-list"><li>Winter-sports themed pieces, extending the sports category into cold-weather sports</li><li>Confirmed Oct 1 alongside New Jewelry Boxes — watch for a cluster if Professions/Sports Expansion also land Oct 1</li></ul></div>
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">2 SKUs</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Light</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">Missing Input</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">N/A</span></span>
-
-    </div>
-  </div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Jul 8</div><div class="detail-footer-item">Updated from H2 2026 Product Launches list (v2)</div></div>
-  </div>
-</div></td></tr>
-<tr class="launch-row" onclick="toggleDrop('jewelryboxes')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge tba">Oct 1</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge tba">Oct 1</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>New Jewelry Boxes</span></td>
-  <td><span class="st planned">Planned</span></td><td><span class="tier light">Light</span></td>
-  <td></td>
-</tr>
-<tr class="detail-row" id="detail-jewelryboxes"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">New Jewelry Boxes</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">Specialized jewelry cases, part of the additional H2 category lineup</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">Not yet defined</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">Part of the additional H2 category lineup</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Not yet assigned to a H2 pillar</span></div>
-    </div>
-    <div class="es-col"><span class="es-label" style="display:block;margin-bottom:8px">Key Info</span><ul class="spotlight-list"><li>Specialized jewelry cases, part of the additional H2 category lineup</li><li>Confirmed Oct 1 alongside Winter Sports — watch for a cluster if Professions/Sports Expansion also land Oct 1</li></ul></div>
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">3 SKUs</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Light</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">Missing Input</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">N/A</span></span>
-
-    </div>
-  </div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Jul 8</div><div class="detail-footer-item">Updated from H2 2026 Product Launches list (v2)</div></div>
-  </div>
-</div></td></tr>
-<tr class="launch-row" onclick="toggleDrop('professions')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge tba">Oct — exact date TBD (delayed from Sep 17)</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge tba">Oct — exact date TBD</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Professions</span></td>
-  <td><span class="st planned">Planned</span></td><td><span class="tier light">Light</span></td>
-  <td></td>
-</tr>
-<tr class="detail-row" id="detail-professions"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">Professions</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">Jewelry themed around different professions/careers</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">Working professionals</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">Part of personalization effort, growing on hobbies</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Not yet assigned to a H2 pillar</span></div>
-    </div>
-    <div class="es-col"><span class="es-label" style="display:block;margin-bottom:8px">Key Info</span><ul class="spotlight-list"><li>Jewelry themed around different professions/careers</li><li>Delayed from Sep 17 to October — exact date not yet decided (owner: Paul/JD)</li><li>Paul's Apr 27 H2 vision doc flags this as a fall-hero candidate at Full tier (TBC), gated by a charm review — conflicts with the Light tier given in the official H2 list</li></ul></div>
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">7 SKUs</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Light</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">Missing Input</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">N/A</span></span>
-
-    </div>
-  </div>
-  <div class="detail-missing"><h5>Missing + Risk</h5><div class="detail-missing-inner"><div class="miss-item">Tier conflict: H2 launch list says Light; Apr 27 H2 vision doc says Full (TBC), pending charm review outcome</div><div class="miss-item">October launch date not yet decided (delayed from Sep 17) — owner: Paul/JD</div><div class="risk-item">Fall hero decision (Professions vs. Manifestation: Vision Board) hinges on this per vision doc — unresolved tier could affect budget/resourcing</div><div class="risk-item">If it lands Oct 1, creates a 4-drop cluster with Winter Sports, New Jewelry Boxes, and Sports Expansion</div></div></div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Jul 8</div><div class="detail-footer-item">Date decision reverted to Paul/JD (v4 correction)</div></div>
-  </div>
-</div></td></tr>
-<tr class="launch-row" onclick="toggleDrop('sportsexpansion')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge tba">Oct — exact date TBD (delayed from Sep 24)</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge tba">Oct — exact date TBD</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Sports Expansion</span></td>
-  <td><span class="st planned">Planned</span></td><td><span class="tier light">Light</span></td>
-  <td></td>
-</tr>
-<tr class="detail-row" id="detail-sportsexpansion"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">Sports Expansion</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">Continuation of the sports-themed jewelry category — adding softball dangle earrings, a beer-opener ring, and little athlete charms + necklace</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">Expansion of sports vertical / Fan Station</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">Continuation of the sports-themed jewelry category</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Not yet assigned to a H2 pillar</span></div>
-    </div>
-    <div class="es-col"><span class="es-label" style="display:block;margin-bottom:8px">Key Info</span><ul class="spotlight-list"><li>Continuation of the sports-themed jewelry category</li><li>Adding softball dangle earrings, beer opening ring, and little athlete charms + necklace</li><li>Delayed from Sep 24 to October — exact date not yet decided (owner: Paul/JD)</li><li>SKUs increased from 2 to 8; tier upgraded from Live-Only to Light</li></ul></div>
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">8 SKUs</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Light</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">Missing Input</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">N/A</span></span>
-
-    </div>
-  </div>
-  <div class="detail-missing"><h5>Missing + Risk</h5><div class="detail-missing-inner"><div class="miss-item">October launch date not yet decided (delayed from Sep 24) — owner: Paul/JD</div><div class="risk-item">If it lands Oct 1, creates a 4-drop cluster with Winter Sports, New Jewelry Boxes, and Professions</div></div></div>
-    <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Jul 8</div><div class="detail-footer-item">Date decision reverted to Paul/JD (v4 correction)</div></div>
-  </div>
-</div></td></tr>
-
-<tr class="launch-row strategic-row" onclick="toggleDrop('blackfriday')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge tba">Oct 30</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge tba">Missing Input</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Black Friday 2026 <span class="promo-badge">Sale</span></span></td>
-  <td><span class="st planned">Planned</span></td><td><span class="tier tbd">TBD</span></td>
-  <td></td>
-</tr>
-<tr class="detail-row" id="detail-blackfriday"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">Black Friday 2026</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">Missing Input</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">Missing Input</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">Missing Input</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Missing Input</span></div>
-    </div>
-    <div class="es-col"><span class="es-label" style="display:block;margin-bottom:8px">Key Info</span><ul class="spotlight-list"><li>Window: Oct 30 – Dec 1, 2026</li><li>This will be completed once sale information is decided.</li></ul></div>
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">Promo (catalog-wide)</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Missing Input</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">N/A</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">N/A</span></span>
-
-    </div>
-  </div>
-  <div class="detail-missing"><h5>Missing + Risk</h5><div class="detail-missing-inner"><div class="miss-item">Discount architecture and creative brief not yet decided</div><div class="miss-item">Owner and MKT comms date to be confirmed</div></div></div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Jul 10 — placeholder added, pending sale decision</div></div>
-  </div>
-</div></td></tr>
-
-</tbody>
-<tbody><tr class="month-sep month-acc" onclick="toggleMonth('november')"><td colspan="6"><div style="display:flex;align-items:center;justify-content:space-between;width:100%">November <span class="month-chevron" id="month-chev-november">›</span></div></td></tr></tbody>
-<tbody class="month-rows" id="month-rows-november">
-
-<tr class="launch-row" onclick="toggleDrop('amari')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge tba">Nov 5</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge tba">Missing Input</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Amari Collection</span></td>
-  <td><span class="st planned">Planned</span></td><td><span class="tier full">Full</span></td>
-  <td></td>
-</tr>
-<tr class="detail-row" id="detail-amari"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">Amari Collection</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">Guest-designer collection with Amari Carter — "best" tier in the Target/Walmart strategy</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">Fashion-forward customers, fans of Amari Carter</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">Expand to a broader audience, testing design collaboration</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Not yet assigned to a H2 pillar</span></div>
-    </div>
-    <div class="es-col"><span class="es-label" style="display:block;margin-bottom:8px">Key Info</span><ul class="spotlight-list"><li>Metamorphosis theme, butterfly imagery, gray/blue muted tones</li><li>Soft launch planned around NY Fashion Week in September — relationship to Nov 5 main date not yet clarified</li><li>Each order includes 1 box regardless of quantity purchased; returns must include the box</li></ul></div>
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">9 SKUs (10 with box)</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Full</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">Missing Input</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">N/A</span></span>
-
-    </div>
-  </div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Jul 8</div><div class="detail-footer-item">Updated from H2 2026 Product Launches list (v2)</div></div>
-  </div>
-</div></td></tr>
-<tr class="launch-row" onclick="toggleDrop('surprisebox')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge tba">Nov 5</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge tba">Missing Input</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Surprise Box (Charms)</span></td>
-  <td><span class="st planned">Planned</span></td><td><span class="tier full">Full</span></td>
-  <td></td>
-</tr>
-<tr class="detail-row" id="detail-surprisebox"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">Surprise Box (Charms)</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">Mystery/surprise box product built around charms</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">Not yet defined</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">Cultural trend of surprise boxes, expansion of charms</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Not yet assigned to a H2 pillar</span></div>
-    </div>
-    <div class="es-col"><span class="es-label" style="display:block;margin-bottom:8px">Key Info</span><ul class="spotlight-list"><li>Mystery/surprise box product built around charms</li><li>Shares Nov 5 date with Amari Collection (2 drops — below the 3+ cluster-flag threshold)</li></ul></div>
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">5 SKUs</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Full</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">Missing Input</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">N/A</span></span>
-
-    </div>
-  </div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Jul 8</div><div class="detail-footer-item">Updated from H2 2026 Product Launches list (v2)</div></div>
-  </div>
-</div></td></tr>
-<tr class="launch-row" onclick="toggleDrop('magicfamily')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge tba">Nov 26</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge tba">Missing Input</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Magic of Family (Gifting Vertical)</span></td>
-  <td><span class="st planned">Planned</span></td><td><span class="tier full">Full</span></td>
-  <td></td>
-</tr>
-<tr class="detail-row" id="detail-magicfamily"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">Magic of Family (Gifting Vertical)</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">Emotional, "inside joke" gifting pieces (Matryoshka bracelet, "World's Best Sister")</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">Not yet defined</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">Gifting season</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Not yet assigned to a H2 pillar</span></div>
-    </div>
-    <div class="es-col"><span class="es-label" style="display:block;margin-bottom:8px">Key Info</span><ul class="spotlight-list"><li>Emotional, "inside joke" gifting pieces (Matryoshka bracelet, "World's Best Sister")</li><li>Moves toward "amulet"-style pieces tied to specific relationships/identities</li><li>SKU count not yet provided in source list</li></ul></div>
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">Missing Input</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Full</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">Missing Input</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">N/A</span></span>
-
-    </div>
-  </div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Jul 8</div><div class="detail-footer-item">Updated from H2 2026 Product Launches list (v2)</div></div>
-  </div>
-</div></td></tr>
-
-</tbody>
-<tbody><tr class="month-sep month-acc" onclick="toggleMonth('december')"><td colspan="6"><div style="display:flex;align-items:center;justify-content:space-between;width:100%">December <span class="month-chevron" id="month-chev-december">›</span></div></td></tr></tbody>
-<tbody class="month-rows" id="month-rows-december">
-
-<tr class="launch-row" onclick="toggleDrop('visionboard')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge tba">Dec 3</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge tba">Missing Input</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Manifestation: Vision Board (Charm Climax)</span></td>
-  <td><span class="st planned">Planned</span></td><td><span class="tier full">Full</span></td>
-  <td></td>
-</tr>
-<tr class="detail-row" id="detail-visionboard"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">Manifestation: Vision Board (Charm Climax)</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">Year-end charms push, culmination of the charms category for 2026 — bracelets only</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">Existing customers</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">Year-end charms push, culmination of the charms category for 2026</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Not yet assigned to a H2 pillar</span></div>
-    </div>
-    <div class="es-col"><span class="es-label" style="display:block;margin-bottom:8px">Key Info</span><ul class="spotlight-list"><li>Bracelets only, centered on manifestation/vision-board themes</li><li>Includes digital 'Vision Board' experience (auto-generated bracelet stack + shareable image)</li><li>SKU count not yet provided in source list</li></ul></div>
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">Missing Input</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Full</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">Missing Input</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">N/A</span></span>
-
-    </div>
-  </div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Jul 8</div><div class="detail-footer-item">Updated from H2 2026 Product Launches list (v2)</div></div>
-  </div>
-</div></td></tr>
-
-</tbody>
-<tbody><tr class="month-sep month-acc" onclick="toggleMonth('archive')"><td colspan="6"><div style="display:flex;align-items:center;justify-content:space-between;width:100%">H1 Archive <span class="month-chevron " id="month-chev-archive">›</span></div></td></tr></tbody>
-<tbody class="month-rows " id="month-rows-archive">
-<tr class="launch-row faded" onclick="toggleDrop('summer')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge grn">May 21</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge grn">July 1</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>The Maré</span></td>
-  <td><span class="st live">Live</span></td><td><span class="tier light">Light</span></td>
-  <td></td>
-</tr>
-<tr class="detail-row" id="detail-summer"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">The Maré</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">The Maré — summer collection (1,000-unit run)</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">Summer gifting audience + influencer seeding</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">Push live May 21 to benefit from creator seeding pre-summer</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Bestsellers — high-volume MKT moment Jul 1</span></div>
-    </div>
-    <div class="es-col"><span class="es-label" style="display:block;margin-bottom:8px">Key Info</span><ul class="spotlight-list"><li>Gold puka shell bracelet of the summer</li><li>UGC-first seeding strategy</li><li>Scarcity as signal (1,000 units)</li><li>Light paid amplification of organic UGC only</li><li>No discounting</li></ul></div>
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">4 SKUs</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Light</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">May 13</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">1,000</span></span>
-      
-    </div>
-    <div class="es-resources"><a href="https://figma.com/file/PLACEHOLDER-summer" target="_blank" class="ov-resource-pill">Figma board</a><a href="https://drive.google.com/PLACEHOLDER-summer" target="_blank" class="ov-resource-pill">Drive folder</a></div>
-  </div>
-  <div class="detail-grid">
-    <div class="detail-section"><h5>Ecomm Placements</h5><div class="place-list"><span class="place-tag">MKT Cards</span><span class="place-tag">Collection Page</span></div></div>
-    <div class="detail-section"><h5>Demand</h5><div class="demand-stack"><div class="demand-row"><div class="meta-ads-badge">5<span>Meta Ads</span></div><div class="crm-badge"><span class="crm-num">1</span><span class="crm-label">CRM</span></div></div></div></div>
-
-  </div>
-</div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Apr 13</div></div>
-  </div>
-</div></td></tr>
-
-<tr class="launch-row faded" onclick="toggleDrop('wcMkt')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge neu">Apr 30 (live)</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge yel">May 25</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>World Cup (Marketing Launch)</span></td>
-  <td><span class="st live">Live</span></td><td><span class="tier strategic">Strategic</span></td>
-  <td></td>
-</tr>
-<tr class="detail-row" id="detail-wcMkt">
-  <td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">World Cup — Marketing Launch</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">19 country variants + generic landing PDP (Significa-built)</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">Global sports/fandom buyers across launch countries (Brazil focus)</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">Once-every-4-years cultural moment, last Messi/Ronaldo World Cup</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Sports Vertical — H1 hero commercial moment</span></div>
-    </div>
-    
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">19 country variants</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Strategic</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">TBC</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">~2,000</span></span>
-      
-    </div>
-    <div class="es-resources"><a href="https://figma.com/file/PLACEHOLDER-wcMkt" target="_blank" class="ov-resource-pill">Figma board</a><a href="https://drive.google.com/PLACEHOLDER-wcMkt" target="_blank" class="ov-resource-pill">Drive folder</a></div>
-  </div>
-  <div class="detail-grid">
-    <div class="detail-section"><h5>Ecomm Placements</h5><div class="place-list"><span class="place-tag">Master PDP w/ 19 variants</span><span class="place-tag">Generic Fan default</span><span class="place-tag">Homepage hero takeover</span><span class="place-tag">Featured collection placement</span><span class="place-tag">Email signup modal</span></div></div>
-    <div class="detail-section"><h5>Demand</h5><div class="demand-row"><div class="meta-ads-badge">10<span>Meta ads</span></div><div class="crm-badge"><span class="crm-num">5</span><span class="crm-label">CRM</span></div></div></div>
-    
-  </div>
-</div>
-  <div class="detail-missing"><h5>Missing + Risk</h5><div class="detail-missing-inner"><div class="miss-item">Significa landing page development confirmation</div><div class="miss-item">May 25 hand-off date from Ze Maria</div><div class="miss-item">Ad batch finalization (mapped to 5–6 hypothesis countries)</div><div class="risk-item">Team aligned in words but not visuals — Significa to deliver mockup BEFORE build</div></div></div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> May 4</div></div>
-  </div>
-</div></td></tr>
-<tr class="launch-row faded" onclick="toggleDrop('fanstation')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge grn">Jun 4</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge grn">Jun 4</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Fan Station</span></td>
-  <td><span class="st live">Live</span></td><td><span class="tier full">Full</span></td>
-  <td></td>
-</tr>
-<tr class="detail-row" id="detail-fanstation"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">Fan Station</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">Sports vertical hub — multi-sport landing experience</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">Sports/fandom buyers across all sports verticals</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">H1 sports vertical anchor + back-to-school setup</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Sports Vertical — multi-sport hub infrastructure</span></div>
-    </div>
-    <div class="es-col"><span class="es-label" style="display:block;margin-bottom:8px">Key Info</span><ul class="spotlight-list"><li>Interest-led entry: teams, schools, affiliations, cities, colors</li><li>Game Day: fandom, pride, emotional peaks</li><li>Training Day: ATHGLOW, movement, sweatproof</li><li>Net-new customer acquisition via sports/fandom</li><li>Backdoor into core Hey Harper catalog</li><li>Meta Ads = WC ads</li><li>Universities launch included within Fan Station</li></ul></div>
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">Hub (no new SKUs)</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Full</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">Jun 18</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">N/A</span></span>
-      
-    </div>
-    <div class="es-resources"><a href="https://figma.com/file/PLACEHOLDER-fanstation" target="_blank" class="ov-resource-pill">Figma board</a><a href="https://drive.google.com/PLACEHOLDER-fanstation" target="_blank" class="ov-resource-pill">Drive folder</a></div>
-  </div>
-  <div class="detail-grid">
-    <div class="detail-section"><h5>Ecomm Placements</h5><div class="place-list"><span class="place-tag">Homepage Hero</span><span class="place-tag">Menu Addition</span><span class="place-tag">MKT Cards</span><span class="place-tag">Dedicated Environment</span></div></div>
-    <div class="detail-section"><h5>Demand</h5><div class="demand-stack"><div class="demand-row"><div class="meta-ads-badge">6<span>Meta Ads</span></div><div class="crm-badge"><span class="crm-num">-</span><span class="crm-label">CRM</span></div></div></div></div>
-    
-  </div>
-</div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Jul 2 — Live, all pre-launch items resolved</div></div>
-  </div>
-</div></td></tr>
-<tr class="launch-row faded" onclick="toggleDrop('daphne')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge grn">June 11</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge grn">June 11</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Daphne Expansion</span></td>
-  <td><span class="st live">Live</span></td><td><span class="tier light">Light</span></td>
-  <td></td>
-  
-</tr>
-<tr class="detail-row" id="detail-daphne"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">Daphne Expansion</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">11 new Daphne products including Alice anklets</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">Existing Daphne family buyers + cross-category shoppers</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">Family expansion + new Alice world cross-link test</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Bestsellers — flagship family deepening (Animals/Pearls pattern)</span></div>
-    </div>
-    <div class="es-col"><span class="es-label" style="display:block;margin-bottom:8px">Key Info</span><ul class="spotlight-list"><li>Bestsellers Daphne push</li><li>Half bridal angle in May</li></ul></div>
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">10 SKUs</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Light</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">Jun 18</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">TBC</span></span>
-      
-    </div>
-    <div class="es-resources"><a href="https://figma.com/file/PLACEHOLDER-daphne" target="_blank" class="ov-resource-pill">Figma board</a><a href="https://drive.google.com/PLACEHOLDER-daphne" target="_blank" class="ov-resource-pill">Drive folder</a></div>
-  </div>
-  <div class="detail-grid">
-    <div class="detail-section"><h5>Ecomm Placements</h5><div class="place-list"><span class="place-tag">Homepage Hero</span><span class="place-tag">Sales Hero</span><span class="place-tag">Collection Page</span><span class="place-tag">MKT Cards</span></div></div>
-    <div class="detail-section"><h5>Demand</h5><div class="demand-stack"><div class="demand-row"><div class="meta-ads-badge">20<span>Meta Ads</span></div><div class="crm-badge"><span class="crm-num">1</span><span class="crm-label">CRM</span></div></div></div></div>
-
-  </div>
-</div>
-  <div class="detail-missing"><h5>Missing + Risk</h5><div class="detail-missing-inner"><div class="miss-item">Ze Maria + Leonardo: product analysis (substitutes vs new)</div><div class="miss-item">Full execution plan — revisit in 3–4 weeks</div></div></div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Apr 13</div></div>
-  </div>
-</div></td></tr>
-<tr class="launch-row faded" onclick="toggleDrop('bracD2')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge grn">June 18</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge grn">June 18</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Bracelets &amp; Anklets D2</span></td>
-  <td><span class="st live">Live</span></td><td><span class="tier light">Light</span></td>
-  <td><span class="flag-warn" title="MKT date and demand topics still missing">⚠️</span></td>
-  
-</tr>
-<tr class="detail-row" id="detail-bracD2"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">Bracelets & Anklets — Drop 2</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">Sub-€30 bracelets calibrated by Drop 1 learnings</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">New-customer + bracelet category buyers</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">Second half of pricing experiment, ≤€30 protected from SS promo</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Profitability — €30-and-under protected price point</span></div>
-    </div>
-    <div class="es-col"><span class="es-label" style="display:block;margin-bottom:8px">Key Info</span><ul class="spotlight-list"><li>Will be on sale</li></ul></div>
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">9 SKUs</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Light</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">Jun 18</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">TBC</span></span>
-      
-    </div>
-    <div class="es-resources"><a href="https://figma.com/file/PLACEHOLDER-bracD2" target="_blank" class="ov-resource-pill">Figma board</a><a href="https://drive.google.com/PLACEHOLDER-bracD2" target="_blank" class="ov-resource-pill">Drive folder</a></div>
-  </div>
-  <div class="detail-grid">
-    <div class="detail-section"><h5>Ecomm Placements</h5><div class="place-list"><span class="place-tag">MKT Cards</span><span class="place-tag">Collection Page</span></div></div>
-    <div class="detail-section"><h5>Demand</h5><div class="demand-stack"><div class="demand-row"><div class="meta-ads-badge">5<span>Meta Ads</span></div><div class="crm-badge"><span class="crm-num">1</span><span class="crm-label">CRM</span></div></div></div></div>
-
-  </div>
-</div>
-  <div class="detail-missing"><h5>Missing + Risk</h5><div class="detail-missing-inner"><div class="miss-item">MKT date</div><div class="miss-item">Demand topics (post D1 data)</div><div class="risk-item">June 18 cluster: 3 drops same date</div></div></div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> May 12</div></div>
-  </div>
-</div></td></tr>
-
-<tr class="launch-row faded" onclick="toggleDrop('storage')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge neu">March 19</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge neu">March 24</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>(Storage) Jewelry Cases</span></td>
-  <td><span class="st live">Live</span></td><td><span class="tier full">Full</span></td>
-  <td></td>
-</tr>
-<tr class="detail-row" id="detail-storage"><td colspan="6"><div class="detail-inner">
-  <div class="overview-box"><span class="ov-sku">3 SKUs</span> — <span class="ov-topic">New category launch.</span> Travel cases and stackers enter Hey Harper as a standalone vertical — Full tier, hero placement, first results showing 2 early ad winners.</div>
-  <div class="detail-grid">
-    <div class="detail-section"><h5>Ecomm Placements</h5><div class="place-list"><span class="place-tag">Homepage Hero</span><span class="place-tag">Sales Hero</span><span class="place-tag">Collection Page</span><span class="place-tag">MKT Cards</span></div></div>
-    <div class="detail-section"><h5>Demand</h5><div class="demand-stack"><div class="demand-row"><div class="meta-ads-badge">10<span>Meta Ads</span></div></div></div></div>
-    
-  </div>
-</div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Apr 11</div></div>
-  </div>
-</div></td></tr>
-<tr class="launch-row strategic-row faded" onclick="toggleDrop('mm')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge neu">N/A</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge neu">March 17</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>March Madness (US) <span class="promo-badge">Sale</span></span></td>
-  <td><span class="st done" style="background:var(--s2);color:var(--ts);font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;display:inline-block;">Done</span></td><td><span class="tier strategic">Strategic</span></td>
-  <td></td>
-  
-</tr>
-<tr class="detail-row" id="detail-mm"><td colspan="6"><div class="detail-inner">
-  <div class="overview-box"><span class="ov-topic">Strategic US promo</span> — 50% off basketball, full site takeover through April 15 — AOV test showing positive direction: multi-item orders +2pp.</div>
-  <div class="detail-grid">
-    <div class="detail-section"><h5>Ecomm Placements</h5><div class="place-list"><span class="place-tag">Homepage Hero</span><span class="place-tag">Promo Blocks</span><span class="place-tag">MKT Cards</span><span class="place-tag">Collection Page</span><span class="place-tag">Progress Bar</span><span class="place-tag">Top Bar Banner</span><span class="place-tag">PDP Promo Blocks</span><span class="place-tag">Footer</span></div></div>
-    <div class="detail-section"><h5>Demand</h5><div class="demand-expanded"><div class="meta-ads-badge">10<span>Meta Ads</span></div></div></div>
-    
-  </div>
-  <div class="detail-section" style="margin-bottom:10px"><h5>Promo</h5><p class="detail-promo">US 50% off basketball items. AOV booster active through April 15.</p></div>
-</div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Apr 11</div></div>
-  </div>
-</div></td></tr>
-<tr class="launch-row strategic-row faded" onclick="toggleDrop('spring')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge neu">N/A</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge neu">March 17</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Spring Sale (EU/UK) <span class="promo-badge">Sale</span></span></td>
-  <td><span class="st done" style="background:var(--s2);color:var(--ts);font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;display:inline-block;">Done</span></td><td><span class="tier strategic">Strategic</span></td>
-  <td></td>
-  
-</tr>
-<tr class="detail-row" id="detail-spring"><td colspan="6"><div class="detail-inner">
-  <div class="overview-box"><span class="ov-topic">EU/UK mirror of March Madness</span> — Same 50% off mechanic, same April 15 end date — AOV test directionally positive.</div>
-  <div class="detail-grid">
-    <div class="detail-section"><h5>Ecomm Placements</h5><div class="place-list"><span class="place-tag">Homepage Hero</span><span class="place-tag">Promo Blocks</span><span class="place-tag">Collection Page</span><span class="place-tag">Top Bar Banner</span></div></div>
-    <div class="detail-section"><h5>Demand</h5><div class="demand-expanded"><div class="meta-ads-badge">0<span>Meta Ads</span></div></div></div>
-    
-  </div>
-  <div class="detail-section" style="margin-bottom:10px"><h5>Promo</h5><p class="detail-promo">EU/UK 50% off basketball. AOV booster active through April 15.</p></div>
-</div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Apr 11</div></div>
-  </div>
-</div></td></tr>
-<tr class="launch-row faded" onclick="toggleDrop('hobbies')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge grn">April 2</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge grn">April 2</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Hobbies Charms + Time Travel</span></td>
-  <td><span class="st live">Live</span></td><td><span class="tier light">Light</span></td>
-  <td><span class="flag-warn" title="Missing inputs — see accordion for details">⚠️</span></td>
-  
-</tr>
-<tr class="detail-row" id="detail-hobbies"><td colspan="6"><div class="detail-inner">
-  <div class="overview-box"><span class="ov-sku">18 SKUs</span> — <span class="ov-topic">Identity-driven charms + piercings.</span> Art lover, knitter, gardener personas — Light tier, collection page and charm builder only, no hero.</div>
-  <div class="detail-grid">
-    <div class="detail-section"><h5>Ecomm Placements</h5><div class="place-list"><span class="place-tag">Collection Page</span><span class="place-tag">Charm Builder (verify auto-populate)</span></div></div>
-    <div class="detail-section"><h5>Demand</h5><div class="demand-stack"><div class="demand-row"><div class="meta-ads-badge">10<span>Meta Ads</span></div></div></div></div>
-
-  </div>
-</div>
-  <div class="detail-missing"><h5>Missing + Risk</h5><div class="detail-missing-inner"><div class="miss-item">Content package overdue March 18</div><div class="miss-item">Charm builder auto-populate unconfirmed</div><div class="risk-item">Brand: PDP image for hobbies collection needed</div></div></div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Apr 11</div></div>
-  </div>
-</div></td></tr>
-<tr class="launch-row faded" onclick="toggleDrop('animals')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge grn">April 16</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge grn">April 16</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Animals Expansion + Sea World</span></td>
-  <td><span class="st live">Live</span></td><td><span class="tier light">Light</span></td>
-  <td><span class="flag-warn" title="Post-prod delivery date still unconfirmed">⚠️</span></td>
-  
-</tr>
-<tr class="detail-row" id="detail-animals"><td colspan="6"><div class="detail-inner">
-  <div class="overview-box"><span class="ov-sku">8 SKUs</span> — <span class="ov-topic">Elemental Animal Mania refresh.</span> Safari, Water, and Air environments built on existing content plus AI — CRM email confirmed. Live + MKT April 16.</div>
-  <div class="detail-grid">
-    <div class="detail-section"><h5>Ecomm Placements</h5><div class="place-list"><span class="place-tag">Homepage Hero</span><span class="place-tag">Sales Hero</span><span class="place-tag">Collection Page</span></div></div>
-    <div class="detail-section"><h5>Demand</h5><div class="demand-stack"><div class="demand-row"><div class="meta-ads-badge">10<span>Meta Ads</span></div></div><div class="demand-row"><div class="crm-badge"><span class="crm-num">1</span><span class="crm-label">CRM Email</span></div></div></div></div>
-
-  </div>
-</div>
-  <div class="detail-missing"><h5>Missing + Risk</h5><div class="detail-missing-inner"><div class="miss-item">Post-prod delivery date</div><div class="risk-item">Shoot 3 sequencing — shares with 5 drops</div></div></div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Apr 11</div></div>
-  </div>
-</div></td></tr>
-<tr class="launch-row faded" onclick="toggleDrop('pearls')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge grn">April 30</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge neu">—</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Pearls</span></td>
-  <td><span class="st live">Live</span></td><td><span class="tier live-only">Live-Only</span></td>
-  <td></td>
-</tr>
-<tr class="detail-row" id="detail-pearls"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">Pearls</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">Pearl earrings, necklaces, and 3 cord-color bracelet variants</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">Existing customers + bestseller cross-shoppers</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">Test bestseller-push CRM mechanic on low-risk Live-Only set</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Bestsellers initiative — variant grouping pattern (Animals-style)</span></div>
-    </div>
-    
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">6 SKUs</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Light</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">TBC</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">TBC</span></span>
-      
-    </div>
-    <div class="es-resources"><a href="https://figma.com/file/PLACEHOLDER-pearls" target="_blank" class="ov-resource-pill">Figma board</a><a href="https://drive.google.com/PLACEHOLDER-pearls" target="_blank" class="ov-resource-pill">Drive folder</a></div>
-  </div>
-  <div class="detail-grid">
-    <div class="detail-section"><h5>Ecomm Placements</h5><div class="place-list"><span class="place-tag">MKT Cards</span><span class="place-tag">Collection Page</span></div></div>
-    <div class="detail-section"><h5>Demand</h5><div class="demand-stack"><div class="demand-row"><div class="meta-ads-badge">0<span>Meta Ads</span></div></div><div class="demand-row"><div class="crm-badge"><span class="crm-num">1</span><span class="crm-label">CRM Email</span></div></div></div></div>
-
-  </div>
-  </div>
-</div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Apr 11</div></div>
-  </div>
-</div></td></tr>
-<tr class="launch-row faded" onclick="toggleDrop('wcSoft')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge grn">Apr 30</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge neu">No MKT</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>World Cup (Soft Launch)</span></td>
-  <td><span class="st live">Live</span></td><td><span class="tier strategic">Strategic</span></td>
-  <td><span class="flag-warn" title="Ops dependency on remaining 13 SKUs">⚠️</span></td>
-</tr>
-<tr class="detail-row" id="detail-wcSoft">
-  <td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">World Cup — Soft Launch</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">6 country fan bracelet PDPs Apr 30 → 19 PDPs ~May 9</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">Sports/fandom early-arrivers (quiet window, findable not promoted)</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">De-risk the May 25 Marketing Launch by getting product live early</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Sports Vertical — bridge to Marketing Launch</span></div>
-    </div>
-    
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">6 → 19 phased</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Strategic</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">TBC</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">~2,000</span></span>
-      
-    </div>
-    <div class="es-resources"><a href="https://figma.com/file/PLACEHOLDER-wcSoft" target="_blank" class="ov-resource-pill">Figma board</a><a href="https://drive.google.com/PLACEHOLDER-wcSoft" target="_blank" class="ov-resource-pill">Drive folder</a></div>
-  </div>
-  <div class="detail-grid">
-    <div class="detail-section"><h5>PDPs only</h5></div>
-    <div class="detail-section"><h5>Production Status</h5></div>
-    
-  </div>
-</div>
-  <div class="detail-missing"><h5>Missing + Risk</h5><div class="detail-missing-inner"><div class="miss-item">Ops ETA for remaining 13 SKUs (JD chasing)</div><div class="miss-item">Final country list confirmation (Leonor)</div><div class="miss-item">AI jersey imagery generation (Paul) — due today</div><div class="risk-item">If Ops slips, 19-PDP date pushes past mid-May</div></div></div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Apr 28</div></div>
-  </div>
-</div></td></tr>
-<tr class="launch-row faded" onclick="toggleDrop('coral')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge grn">May 5</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge neu">N/A</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Coral Dream + Blue Box</span></td>
-  <td><span class="st planned">Planned</span></td><td><span class="tier live-only">Live-Only</span></td>
-  <td></td>
-  
-</tr>
-<tr class="detail-row" id="detail-coral"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">Coral Dream Box + Harper Blue Box</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">Coral Dream Box + Harper Blue Box — 2 subscription PDPs</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">Subscription audience + new sub trial</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">Continued sub-box catalog expansion before Summer Sale window</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Profitability — subscription business line</span></div>
-    </div>
-    
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">2 SKUs</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Live-Only</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">TBC</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">TBC</span></span>
-      
-    </div>
-    <div class="es-resources"><a href="https://figma.com/file/PLACEHOLDER-coral" target="_blank" class="ov-resource-pill">Figma board</a><a href="https://drive.google.com/PLACEHOLDER-coral" target="_blank" class="ov-resource-pill">Drive folder</a></div>
-  </div>
-  <div class="detail-grid">
-    <div class="detail-section"><h5>Ecomm Placements</h5><div class="place-list"></div></div>
-    <div class="detail-section"><h5>Demand</h5><div class="demand-stack"><div class="demand-row"><div class="meta-ads-badge">0<span>Meta Ads</span></div></div><div class="demand-row"><div class="crm-badge" style="background:var(--neubg);"><span class="crm-num" style="font-size:14px;color:var(--ts)">0</span><span class="crm-label" style="color:var(--ts)">CRM</span></div></div></div></div>
-
-  </div>
-</div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Apr 11</div></div>
-  </div>
-</div></td></tr>
-<tr class="launch-row faded" onclick="toggleDrop('caps')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge grn">May 6</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge neu">CRM only</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Baseball Caps</span></td>
-  <td><span class="st planned">Planned</span></td><td><span class="tier light">Light</span></td>
-  <td><span class="flag-warn" title="Creator brief timing + catalog ad decision pending">⚠️</span></td>
-  
-</tr>
-<tr class="detail-row" id="detail-caps"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">Baseball Caps</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">Baseball cap accessory line — 5 SKUs</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">Sports-vertical buyers + cross-category test from jewelry</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">First non-jewelry accessory category test, ads kick off May 28</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Sports Vertical — accessory category expansion test</span></div>
-    </div>
-    
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">5 SKUs</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Light</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">TBC</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">TBC</span></span>
-      
-    </div>
-    <div class="es-resources"><a href="https://figma.com/file/PLACEHOLDER-caps" target="_blank" class="ov-resource-pill">Figma board</a><a href="https://drive.google.com/PLACEHOLDER-caps" target="_blank" class="ov-resource-pill">Drive folder</a></div>
-  </div>
-  <div class="detail-grid">
-    <div class="detail-section"><h5>Ecomm Placements</h5><div class="place-list"><span class="place-tag">Sales Hero</span><span class="place-tag">MKT Cards</span><span class="place-tag">Collection Page</span></div></div>
-    <div class="detail-section"><h5>Demand</h5><div class="demand-stack"><div class="demand-row"><div class="meta-ads-badge">5<span>Meta Ads</span></div></div><div class="demand-row"><div class="crm-badge"><span class="crm-num">1</span><span class="crm-label">CRM</span></div></div></div></div>
-
-  </div>
-</div>
-  <div class="detail-missing"><h5>Missing + Risk</h5><div class="detail-missing-inner"><div class="miss-item">Cross-sell mechanic decision</div><div class="miss-item">CRM brief (Katerina)</div><div class="risk-item">500 MOQ to clear</div></div></div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Apr 13</div></div>
-  </div>
-</div></td></tr>
-<tr class="launch-row faded" onclick="toggleDrop('wish')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge grn">May 6</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge neu">GWP only</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Wish Ribbon</span></td>
-  <td><span class="st almost-there">Almost There</span></td><td><span class="tier live-only">Live-Only</span></td>
-  <td><span class="flag-warn" title="GWP start timing TBD">⚠️</span></td>
-</tr>
-<tr class="detail-row" id="detail-wish"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">Wish Ribbon</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">Brazil-inspired wish ribbon bracelets — 4 SKUs</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">Bracelet buyers (GWP recipients) + gifting audience</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">Bracelet AOV booster + sub-€10 SKU test for May-June</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Profitability — GWP mechanic protects bracelet category</span></div>
-    </div>
-    
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">4 SKUs</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Live-Only</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">TBC</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">TBC</span></span>
-      
-    </div>
-    <div class="es-resources"><a href="https://figma.com/file/PLACEHOLDER-wish" target="_blank" class="ov-resource-pill">Figma board</a><a href="https://drive.google.com/PLACEHOLDER-wish" target="_blank" class="ov-resource-pill">Drive folder</a></div>
-  </div>
-  <div class="detail-grid">
-    <div class="detail-section"><h5>Ecomm Placements</h5><div class="place-list"><span class="place-tag">MKT Cards</span></div></div>
-    <div class="detail-section"><h5>Demand</h5><div class="demand-stack"><div class="demand-row"><div class="meta-ads-badge">0<span>Meta Ads</span></div></div></div></div>
-    
-  </div>
-</div>
-  <div class="detail-missing"><h5>Missing + Risk</h5><div class="detail-missing-inner"><div class="miss-item">Cate approval on pack-of-four — STILL OUTSTANDING (Paul checking again)</div></div></div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Apr 20</div></div>
-  </div>
-</div></td></tr>
-<tr class="launch-row faded" onclick="toggleDrop('food')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge grn">May 7</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge grn">May 7</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Food &amp; Cocktails</span></td>
-  <td><span class="st planned">Planned</span></td><td><span class="tier full">Full</span></td>
-  <td><span class="flag-warn" title="2 missing inputs — see accordion for details">⚠️</span></td>
-  
-</tr>
-<tr class="detail-row" id="detail-food"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">Food & Cocktails</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">20 SKUs across themed food + cocktails charm capsule</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">Identity/personality buyers ahead of summer celebration window</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">H1 hero food/dining cultural moment, anchors May</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Bestsellers — new identity-driven category extension</span></div>
-    </div>
-    
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">20 SKUs</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Full</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">TBC</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">TBC</span></span>
-      
-    </div>
-    <div class="es-resources"><a href="https://figma.com/file/PLACEHOLDER-food" target="_blank" class="ov-resource-pill">Figma board</a><a href="https://drive.google.com/PLACEHOLDER-food" target="_blank" class="ov-resource-pill">Drive folder</a></div>
-  </div>
-  <div class="detail-grid">
-    <div class="detail-section"><h5>Ecomm Placements</h5><div class="place-list"><span class="place-tag">Homepage Hero</span><span class="place-tag">MKT Cards</span><span class="place-tag">Collection Page</span><span class="place-tag">PDP Variants</span></div></div>
-    <div class="detail-section"><h5>Ecomm Features</h5></div>
-    <div class="detail-section"><h5>Demand</h5><div class="demand-stack"><div class="demand-row"><div class="meta-ads-badge">10<span>Meta Ads</span></div></div></div></div>
-
-  </div>
-  </div>
-</div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Apr 13</div></div>
-  </div>
-</div></td></tr>
-<tr class="launch-row faded" onclick="toggleDrop('bracD1')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge grn">May 7</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge neu">N/A</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Bracelets &amp; Anklets D1</span></td>
-  <td><span class="st planned">Planned</span></td><td><span class="tier light">Light</span></td>
-  <td><span class="flag-warn" title="1 missing inputs — see accordion for details">⚠️</span></td>
-  
-</tr>
-<tr class="detail-row" id="detail-bracD1"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">Bracelets & Anklets — Drop 1</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">Sub-€30 bracelets — 8 SKUs (heart, V rectangle, color variants)</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">New-customer entry-point shoppers</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">First half of paired pricing experiment, calibrates Drop 2</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Profitability — €30-and-under price-point test</span></div>
-    </div>
-    
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">8 SKUs</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Light</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">TBC</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">TBC</span></span>
-      
-    </div>
-    <div class="es-resources"><a href="https://figma.com/file/PLACEHOLDER-bracD1" target="_blank" class="ov-resource-pill">Figma board</a><a href="https://drive.google.com/PLACEHOLDER-bracD1" target="_blank" class="ov-resource-pill">Drive folder</a></div>
-  </div>
-  <div class="detail-grid">
-    <div class="detail-section"><h5>Ecomm Placements</h5><div class="place-list"><span class="place-tag">Homepage Hero</span><span class="place-tag">Sales Hero</span><span class="place-tag">MKT Cards</span><span class="place-tag">Collection Page</span><span class="place-tag">Shop the Look</span></div></div>
-    <div class="detail-section"><h5>Demand</h5><div class="demand-stack"><div class="demand-row"><div class="meta-ads-badge">5<span>Meta Ads</span></div></div></div></div>
-
-  </div>
-</div>
-  <div class="detail-missing"><h5>Missing + Risk</h5><div class="detail-missing-inner"><div class="miss-item">Pricing test proposal (Ze Maria — before May 7)</div><div class="miss-item">Wish Ribbon GWP start timing</div><div class="risk-item">May 7 cluster resource crunch</div></div></div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Apr 13</div></div>
-  </div>
-</div></td></tr>
-<tr class="launch-row faded" onclick="toggleDrop('burger')">
-  <td><div class="date-col"><span class="date-label">Live</span><span class="date-badge grn">May 7</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge neu">N/A</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Hamburger &amp; Hot Dog Cases</span></td>
-  <td><span class="st planned">Planned</span></td><td><span class="tier live-only">Live-Only</span></td>
-  <td></td>
-  
-</tr>
-<tr class="detail-row" id="detail-burger"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">Hamburger & Hot Dog Cases</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">Burger + hot dog jewelry storage cases — 2 SKUs</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">Storage category customers + Food & Cocktails cross-shoppers</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">Joins Food & Cocktails launch as cross-category amplifier</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Expansion — storage category extension</span></div>
-    </div>
-    
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">2 SKUs</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Live-Only</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">TBC</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">TBC</span></span>
-      
-    </div>
-    <div class="es-resources"><a href="https://figma.com/file/PLACEHOLDER-burger" target="_blank" class="ov-resource-pill">Figma board</a><a href="https://drive.google.com/PLACEHOLDER-burger" target="_blank" class="ov-resource-pill">Drive folder</a></div>
-  </div>
-  <div class="detail-grid">
-    <div class="detail-section"><h5>Ecomm Placements</h5><p class="detail-promo">PDPs only</p></div>
-    <div class="detail-section"><h5>Demand</h5><div class="demand-stack"><div class="demand-row"><div class="meta-ads-badge">0<span>Meta Ads</span></div></div><div class="demand-row"><div class="crm-badge" style="background:var(--neubg);"><span class="crm-num" style="font-size:14px;color:var(--ts)">0</span><span class="crm-label" style="color:var(--ts)">CRM</span></div></div></div></div>
-    
-  </div>
-</div>
-  <div class="detail-missing"><h5>Missing + Risk</h5><div class="detail-missing-inner"><div class="miss-item">JD: Storage sell-through data → added support decision by Apr 17</div></div></div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Apr 13</div></div>
-  </div>
-</div></td></tr>
-<tr class="launch-row faded" onclick="toggleDrop('lisbon')">
-  <td><div class="date-col"><span class="date-label">Event</span><span class="date-badge grn">May 8–9</span></div></td>
-  <td><div class="date-col"><span class="date-label">MKT</span><span class="date-badge grn">April 17</span></div></td>
-  <td><span class="drop-name"><span class="drop-chevron">›</span>Lisbon Sample Sale</span></td>
-  <td><span class="st in-progress">In Progress</span></td><td><span class="tier strategic">Strategic</span></td>
-  <td><span class="flag-warn" title="Ad count + budget still missing">⚠️</span></td>
-</tr>
-<tr class="detail-row" id="detail-lisbon"><td colspan="6"><div class="detail-inner">
-  <div class="exec-summary">
-    <div class="es-title"><span class="es-title-text">Lisbon Sample Sale</span></div>
-    <div class="es-body">
-    <div class="es-col">
-      <div class="es-row"><span class="es-label">Product</span><span class="es-value">Physical Lisbon sample sale (1 weekend event)</span></div>
-    <div class="es-row"><span class="es-label">For</span><span class="es-value">Local Lisbon customers + brand-awareness opportunity</span></div>
-    <div class="es-row"><span class="es-label">Why now</span><span class="es-value">Annual community moment + inventory clearing</span></div>
-    <div class="es-row"><span class="es-label">Pillar</span><span class="es-value">Brand — community engagement + local presence</span></div>
-    </div>
-    
-    </div>
-    <div class="es-stats">
-      <span class="es-stat"><span class="es-stat-k">SKUs</span><span class="es-stat-v">Event (no new SKUs)</span></span>
-      <span class="es-stat"><span class="es-stat-k">Tier</span><span class="es-stat-v">Light</span></span>
-      <span class="es-stat"><span class="es-stat-k">DFC</span><span class="es-stat-v">TBC</span></span>
-      <span class="es-stat"><span class="es-stat-k">Units</span><span class="es-stat-v">N/A</span></span>
-      
-    </div>
-    <div class="es-resources"><a href="https://figma.com/file/PLACEHOLDER-lisbon" target="_blank" class="ov-resource-pill">Figma board</a><a href="https://drive.google.com/PLACEHOLDER-lisbon" target="_blank" class="ov-resource-pill">Drive folder</a></div>
-  </div>
-  <div class="detail-grid">
-    <div class="detail-section"><h5>Placements</h5><p class="detail-promo">Typeform page + Sample sale landing page</p></div>
-    <div class="detail-section"><h5>Demand</h5><div class="demand-stack"><div class="demand-row"><div class="meta-ads-badge">Missing Input<span>Meta Ads</span></div></div></div></div>
-    
-  </div>
-  </div></div>
-</div>
-  <div class="detail-footer"><div class="detail-footer-item"><strong>Last Updated:</strong> Apr 13</div></div>
-  </div>
-</div></td></tr>
-
-</tbody>
-
-</table>
-</div>
-</div><!-- /p-home -->
-
-<!-- BULLETIN BOARD -->
 <div class="panel" id="p-bulletin">
+  <div class="bulletin-blurb" id="leadsBlurb"></div>
 
-<div class="priorities" style="margin:0 0 14px">
-  <div class="priorities-header">
-    <h3>This Week</h3>
-    <span class="pri-updated" id="needsActionRange"></span>
-  </div>
+  <div class="section-title">Main Things This Week</div>
+  <div class="card-row" id="mainThings"></div>
 
-  <div style="padding:16px 32px 6px">
-    <div class="bh-label" style="color:var(--ts)">Main things this week</div>
-    <div class="bh-grid">
-      <div class="bh-card">
-        <div class="bh-card-title">Margarita Necklace goes live Jul 15</div>
-        <div class="bh-card-sub">Return of the original necklace — re-launch after 10 rounds of supplier samples</div>
-      </div>
-      <div class="bh-card">
-        <div class="bh-card-title">Summer Sale extended to Jul 30</div>
-      </div>
+  <div class="section-title">Needs Action</div>
+  <div id="needsAction"></div>
+
+  <div class="three-col" style="margin-top:28px">
+    <div>
+      <div class="section-title">What Changed</div>
+      <div id="whatChanged"></div>
     </div>
-  </div>
-
-  <div style="padding:14px 32px;border-top:1px solid var(--bd);margin-top:8px">
-    <div class="bh-label" style="color:var(--ts)">Needs action</div>
-    <div id="needsActionBody"></div>
+    <div>
+      <div class="section-title">Coming Up</div>
+      <div id="comingUp"></div>
+    </div>
+    <div>
+      <div class="section-title">Decisions Needed</div>
+      <div id="decisionsNeeded"></div>
+    </div>
   </div>
 </div>
 
-<div class="priorities" style="margin:0 0 14px">
-  <div class="priorities-header">
-    <h3 id="weekRangeHeader">This Week</h3>
-    <span class="pri-updated">Last updated Jul 10</span>
-  </div>
-  <div class="priorities-inner">
-    <div class="pri-col">
-      <div class="pri-col-label">What Changed</div>
-      <div class="pri-col-body">
-        <div class="wc-card">
-          <div class="wc-card-tier commercial">Commercial</div>
-          <div class="wc-card-title">Universities went live</div>
-          <ul class="wc-card-bullets">
-            <li>Launched Jul 9 as "Collegiate Collection" on heyharper.com and within Fan Station. 37 SKUs. Missing + Risk items cleared.</li>
-          </ul>
-        </div>
-        <div class="wc-card">
-          <div class="wc-card-tier commercial">Commercial</div>
-          <div class="wc-card-title">Summer Sale extended to Jul 30</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="pri-col">
-      <div class="pri-col-label">Coming Up</div>
-      <div class="pri-col-body">
-        <div class="pri-upcoming-item" onclick="goToDrop('margarita')">
-          <div class="pri-upcoming-date">Jul 15</div>
-          <div class="pri-upcoming-name">Margarita Necklace launches</div>
-          <div class="pri-upcoming-sub">Light · Prep the launch — re-launch of the original Cate-designed necklace, 1 SKU</div>
-        </div>
-        <div class="pri-upcoming-item">
-          <div class="pri-upcoming-date">Jul 17</div>
-          <div class="pri-upcoming-name">The Maré Gifting — The Pass-It-On Gift</div>
-          <div class="pri-upcoming-sub">Sent to 200 influencers in Dallas — each gets two identical bracelets, one to keep and one to give a friend · strategic push</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="pri-col">
-      <div class="pri-col-label">Decisions Needed</div>
-      <div class="pri-col-body">
-        <div class="pri-decision-item">
-          <div class="pd-text">Decide October launch date — Professions</div>
-          <div class="pd-meta">Affects: Professions (delayed from Sep 17, owner: Paul/JD)</div>
-        </div>
-        <div class="pri-decision-item">
-          <div class="pd-text">Decide October launch date — Sports Expansion</div>
-          <div class="pd-meta">Affects: Sports Expansion (delayed from Sep 24, owner: Paul/JD)</div>
-        </div>
-        <div class="pri-decision-item">
-          <div class="pd-text">Decide MKT push timing — Bloomwave Pattern</div>
-          <div class="pd-meta">Affects: Bloomwave Pattern (live Jul 30, MKT Comms currently "August, exact date TBD" — decide whether to run a dedicated August push or align comms closer to the live date, owner: Paul/JD)</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <details class="board-archive">
-    <summary>Previous weeks · running log</summary>
-    <div class="board-archive-content">
-      <div class="wc-archive-week">
-        <div class="wc-archive-header">Jul 8-9 &middot; Universities launch week</div>
-        <ul class="pri-decisions-tiered">
-          <li class="pri-tier-label commercial">Commercial</li>
-          <li><strong>Drop name decided: Collegiate Collection.</strong> Site-facing name for the Universities launch (Jul 9), 37 SKUs confirmed.</li>
-          <li><strong>Universities launched Jul 9</strong> on heyharper.com and within Fan Station.</li>
-        </ul>
-      </div>
-      <div class="wc-archive-week">
-        <div class="wc-archive-header">Jul 2 &middot; Dashboard + tracker sync</div>
-        <ul class="pri-decisions-tiered">
-          <li class="pri-tier-label commercial">Commercial</li>
-          <li><strong>Fan Station is live.</strong> All pre-launch items resolved.</li>
-          <li><strong>Summer Sale is live.</strong> Volume split, subs strategy, and regional offer split all resolved. (Note: end date later extended to Jul 30 on Jul 8.)</li>
-        </ul>
-      </div>
-      <div class="wc-archive-week">
-        <div class="wc-archive-header">May 12 &middot; Monday Leads</div>
-        <ul class="pri-decisions-tiered">
-          <li class="pri-tier-label commercial">Commercial</li>
-          <li><strong>Summer Sale shifted to Jun 18</strong> (was Jun 16). Stock from China customs window — soft launch Jun 17 to capture data first. 4-week sale window Jun 18 &rarr; Jul 14. (Resolved Jul 2: live as of Jun 18)</li>
-          <li><strong>Universities plan to Cate May 18.</strong> Mini kickoff Paul + JD — new vertical exploration, confirms commercial framing for back-to-school.</li>
-          <li class="pri-tier-label execution">Execution</li>
-          <li><strong>Summer Sale visual language delivered May 28.</strong> 3-week asset production window after delivery, landed ~Jun 17-18 for soft + official launch.</li>
-          <li><strong>World Cup Marketing Launch</strong> &mdash; May 25, 19 country variants + Significa landing page, full marketing push.</li>
-          <li class="pri-tier-label open-loops">Open loops</li>
-          <li><strong>Significa scope vs. budget — escalate to JD if overage.</strong> Affects World Cup Marketing Launch.</li>
-          <li><strong>If overage: descope or skip Fan Station, ship Universities only.</strong> Affects Fan Station. (Resolved Jul 2: Fan Station launched Jun 4, all pre-launch items closed)</li>
-          <li><strong>Cross-sell mechanic decision needed.</strong> Affects Bracelets D1 · owner: Katerina (CRM brief pending)</li>
-          <li><strong>Storage sell-through data &rarr; added support decision.</strong> Affects Storage &amp; Accessories · owner: JD, due Apr 17. (Resolved Apr 25: all inputs resolved post-launch)</li>
-        </ul>
-      </div>
-      <div class="wc-archive-week">
-        <div class="wc-archive-header">May 4 &middot; Monday Leads</div>
-        <ul class="pri-decisions-tiered">
-          <li class="pri-tier-label commercial">Commercial</li>
-          <li><strong>Summer Sale shifted Jun 16 &rarr; Jun 18.</strong> Stock from China customs window. Soft launch Jun 17. 4-week sale Jun 18 &rarr; Jul 14.</li>
-          <li><strong>Wish Ribbon mechanic locked.</strong> GWP in June + sold individually + 4-pack. Cate signed off.</li>
-          <li><strong>Brazil scale push live this week + pricing experiment.</strong> Stock incoming Tue/Wed. 45% taxes on Brazil revenue surfaced as P&amp;L reality.</li>
-          <li><strong>Universities plan to Cate May 18.</strong> Mini kickoff Paul + JD this week.</li>
-          <li class="pri-tier-label execution">Execution</li>
-          <li><strong>Mexico Phase 03 ready for May 11.</strong> No blockers, Alina freelancer reviewing content. Cloudview key added.</li>
-          <li class="pri-tier-label open-loops">Open loops</li>
-          <li><strong>MBA project accepted &mdash; kickoff May 5.</strong> Business case format per JD's note.</li>
-          <li><strong>Live Shopping Pilot: paused indefinitely.</strong> Off active tracking, captured in backlog.</li>
-          <li><strong>Harper Holiday Stocking: cancelled.</strong> 1,000-unit MOQ not pursued.</li>
-        </ul>
-      </div>
-      <div class="wc-archive-week">
-        <div class="wc-archive-header">Apr 28 &middot; Monday Leads</div>
-        <ul class="pri-decisions-tiered">
-          <li class="pri-tier-label commercial">Commercial</li>
-          <li><strong>World Cup phased rollout locked.</strong> Apr 30 Soft Launch (6 PDPs only, no marketing). May 25 Marketing Launch (Significa landing + ads + CRM).</li>
-          <li><strong>Summer Sale revenue target locked: &euro;5M.</strong> Jun + Jul combined. Plan B: 50% off site-wide + 1 week extension if tiers don't match week 1.</li>
-          <li><strong>Brazil scale moment incoming.</strong> Stock landing next week. Site refresh + push best sellers.</li>
-          <li class="pri-tier-label execution">Execution</li>
-          <li><strong>World Cup ad strategy.</strong> 5 testing-appetite ads launching this week, mapped to 6 launch countries.</li>
-          <li><strong>Bracelets D1: Cate's color-split rule.</strong> Orange + red = separate products. New rule: colors = always separate products.</li>
-          <li><strong>Pearls variant grouping locked.</strong> Animals-style cross-link.</li>
-          <li class="pri-tier-label open-loops">Open loops</li>
-          <li><strong>Wish Ribbon mechanic &mdash; Cate decision Tuesday.</strong> (Resolved May 4: GWP + singles + 4-pack)</li>
-          <li><strong>UGC compensation tiers.</strong> JD owes feedback ahead of next sync.</li>
-          <li><strong>Harper Holiday Stocking &mdash; decision needed this week.</strong> (Resolved May 4: cancelled)</li>
-        </ul>
-      </div>
-    </div>
-  </details>
-</div>
-</div>
-
-<!-- CALENDAR -->
 <div class="panel" id="p-calendar">
-  <div class="cal-legend"><span class="cal-legend-swatch"></span> Live .com date</div>
-  <div class="cal-wrap" id="calendarGrid"></div>
+  <div id="calendarGrid"></div>
 </div>
-
-<div class="footnote">Date badges: green = confirmed • yellow = missing • red = blocked/urgent • grey = live/N/A | Recently Dropped moves to bottom after 30 days | Updated Jul 8, 2026</div>
 
 <script>
+// ============ CONFIG ============
+const SHEET_ID = '1_XFIY84E83LxnAUmrYxtqqVDVOEVNYhCk0oUab-2HkI';
+const TABS = {
+  drops: 'Drops',
+  mainThings: 'Main Things This Week',
+  whatChanged: 'What Changed',
+  comingUp: 'Coming Up',
+  decisions: 'Decisions Needed',
+  blurb: 'Leads Blurb'
+};
+function csvUrl(sheetName){
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+}
+
+// ============ CSV PARSER (handles quoted fields, embedded commas/newlines) ============
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for(let i=0;i<text.length;i++){
+    const c = text[i], next = text[i+1];
+    if(inQuotes){
+      if(c === '"' && next === '"'){ field+='"'; i++; }
+      else if(c === '"'){ inQuotes = false; }
+      else { field += c; }
+    } else {
+      if(c === '"'){ inQuotes = true; }
+      else if(c === ','){ row.push(field); field=''; }
+      else if(c === '\n'){ row.push(field); rows.push(row); row=[]; field=''; }
+      else if(c === '\r'){ /* skip */ }
+      else { field += c; }
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  if(!rows.length) return [];
+  const headers = rows[0].map(h=>h.trim());
+  return rows.slice(1).filter(r=>r.some(c=>c && c.trim())).map(r=>{
+    const obj = {};
+    headers.forEach((h,idx)=> obj[h] = (r[idx]||'').trim());
+    return obj;
+  });
+}
+
+async function fetchTab(sheetName){
+  const res = await fetch(csvUrl(sheetName));
+  if(!res.ok) throw new Error(`Could not load "${sheetName}" tab (HTTP ${res.status}). Make sure the Sheet is shared as "Anyone with the link can view".`);
+  const text = await res.text();
+  return parseCSV(text);
+}
+
+// ============ DATE HELPERS ============
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function parseFlexDate(str){
+  if(!str) return null;
+  str = str.trim();
+  if(!str || /tbd/i.test(str) || /^n\/a$/i.test(str)) return null;
+  // strip parenthetical notes
+  str = str.replace(/\(.*?\)/g,'').trim();
+  // take first date-like token if compound ("October 1" etc already fine)
+  const m = str.match(/([A-Za-z]+)\.?\s+(\d{1,2})/);
+  if(!m) return null;
+  const monIdx = MONTHS.findIndex(mo=> mo.toLowerCase().startsWith(m[1].toLowerCase().slice(0,3)));
+  if(monIdx === -1) return null;
+  const day = parseInt(m[2],10);
+  let year = 2026;
+  return new Date(year, monIdx, day);
+}
+function fmtDate(d){
+  if(!d) return '—';
+  return `${MONTHS[d.getMonth()].slice(0,3)} ${d.getDate()}`;
+}
+function daysBetween(a,b){ return Math.round((b-a)/(1000*60*60*24)); }
+
+// ============ STATE ============
+let DROPS = [];
+
+// ============ RENDER: KPI ============
+function renderKPIs(){
+  const total = DROPS.length;
+  const blockers = DROPS.filter(d=> d.Blocker && d.Blocker.toLowerCase()==='yes');
+  const missing = DROPS.filter(d=> d['Missing Input'] && d['Missing Input'].trim());
+  const today = new Date(); today.setHours(0,0,0,0);
+  const future = DROPS.map(d=>parseFlexDate(d['Live on PDP'])).filter(d=>d && d>=today).sort((a,b)=>a-b);
+  const nextLaunch = future[0];
+  const daysUntil = nextLaunch ? daysBetween(today, nextLaunch) : null;
+
+  const kpiRow = document.getElementById('kpiRow');
+  kpiRow.innerHTML = `
+    <div class="kpi-card"><div class="kpi-num">${total}</div><div class="kpi-label">Total Launches</div></div>
+    <div class="kpi-card clickable" onclick="toggleKpi('blockersExp')"><div class="kpi-num red">${blockers.length}</div><div class="kpi-label">Blockers</div>
+      <div class="kpi-expand" id="blockersExp">${blockers.length? blockers.map(d=>`<div>${d['Drop Name']}</div>`).join('') : '<div>No blockers right now.</div>'}</div>
+    </div>
+    <div class="kpi-card clickable" onclick="toggleKpi('missingExp')"><div class="kpi-num" style="color:var(--yellow)">${missing.length}</div><div class="kpi-label">Missing Inputs</div>
+      <div class="kpi-expand" id="missingExp">${missing.length? missing.map(d=>`<div>${d['Drop Name']}</div>`).join('') : '<div>Nothing missing.</div>'}</div>
+    </div>
+    <div class="kpi-card"><div class="kpi-num pink">${daysUntil!==null? daysUntil : '—'}</div><div class="kpi-label">${nextLaunch? `Days to ${nextLaunch===null?'':fmtDate(nextLaunch)}` : 'Next Launch'}</div></div>
+  `;
+}
+function toggleKpi(id){ document.getElementById(id).classList.toggle('open'); }
+
+// ============ RENDER: TABLE ============
+function statusClass(status){
+  if(!status) return '';
+  if(/live/i.test(status)) return 'status-Live';
+  if(/planned/i.test(status)) return 'status-Planned';
+  if(/done/i.test(status)) return 'status-Done';
+  if(/progress|almost/i.test(status)) return 'status-Progress';
+  if(/hold/i.test(status)) return 'status-Hold';
+  return '';
+}
+function renderTable(){
+  const groups = {};
+  DROPS.forEach(d=>{
+    const dt = parseFlexDate(d['Live on PDP']) || parseFlexDate(d['MKT Comms']);
+    const key = dt ? MONTHS[dt.getMonth()] : 'Date TBD';
+    groups[key] = groups[key] || [];
+    groups[key].push(d);
+  });
+  const orderedKeys = MONTHS.filter(m=>groups[m]).concat(groups['Date TBD']? ['Date TBD']: []);
+  let html = '';
+  orderedKeys.forEach((mon,gi)=>{
+    const gid = `grp-${gi}`;
+    html += `<tr class="month-sep" onclick="toggleGroup('${gid}')"><td colspan="8"><span class="month-chevron ${gi===0?'open':''}" id="chev-${gid}">›</span> ${mon} (${groups[mon].length})</td></tr>`;
+    html += `<tbody class="month-rows ${gi===0?'open':''}" id="${gid}">`;
+    groups[mon].forEach((d,ri)=>{
+      const notesId = `notes-${gid}-${ri}`;
+      const notesShort = (d.Notes||'').split('|')[0].slice(0,80);
+      html += `<tr>
+        <td><span class="half-tag">${d.Half||''}</span></td>
+        <td><strong>${d['Drop Name']||''}</strong></td>
+        <td><span class="status-badge ${statusClass(d.Status)}">${d.Status||''}</span></td>
+        <td>${d.Tier||''}</td>
+        <td>${d['Live on PDP']||'—'}</td>
+        <td>${d['MKT Comms']||'—'}</td>
+        <td>${d.Owner||'—'}</td>
+        <td>
+          ${notesShort? notesShort+'…' : '—'}
+          ${d.Notes? `<div><span class="notes-toggle" onclick="toggleNotes('${notesId}')">show all</span></div><div class="notes-full" id="${notesId}">${(d.Notes||'').replace(/\|/g,'\n')}</div>`:''}
+        </td>
+      </tr>`;
+    });
+    html += `</tbody>`;
+  });
+  document.getElementById('tableBody').outerHTML = `<tbody id="tableBody">${html}</tbody>`;
+}
+function toggleGroup(id){
+  document.getElementById(id).classList.toggle('open');
+  document.getElementById('chev-'+id).classList.toggle('open');
+}
+function toggleNotes(id){ document.getElementById(id).classList.toggle('open'); }
+
+// ============ RENDER: BULLETIN BOARD ============
+function renderBulletin(blurbRows, mainRows, changedRows, comingRows, decisionRows){
+  document.getElementById('leadsBlurb').textContent = blurbRows[0] ? blurbRows[0][Object.keys(blurbRows[0])[0]] : '';
+
+  document.getElementById('mainThings').innerHTML = mainRows.map(r=>`
+    <div class="main-card"><h4>${r.Title||''}</h4><p>${r.Description||''}</p></div>
+  `).join('') || '<div class="needs-action-empty">Nothing added yet.</div>';
+
+  // Needs Action: auto-computed from Drops with Live on PDP within next 7 days
+  const today = new Date(); today.setHours(0,0,0,0);
+  const in7 = DROPS.filter(d=>{
+    const dt = parseFlexDate(d['Live on PDP']);
+    if(!dt) return false;
+    const diff = daysBetween(today, dt);
+    return diff >= 0 && diff <= 7;
+  });
+  const naEl = document.getElementById('needsAction');
+  if(!in7.length){
+    naEl.innerHTML = `<div class="needs-action-empty">Nothing with a live date in the next 7 days. This only tracks PDP-live dates.</div>`;
+  } else {
+    naEl.innerHTML = in7.map(d=>`<div class="needs-action-item"><strong>${d['Drop Name']}</strong>Live on PDP: ${d['Live on PDP']} · Owner: ${d.Owner||'—'}</div>`).join('');
+  }
+
+  document.getElementById('whatChanged').innerHTML = changedRows.map(r=>`
+    <div class="changed-card"><div class="changed-tag">${r.Category||''}</div><div class="changed-title">${r.Title||''}</div><div class="changed-detail">${r.Detail||''}</div></div>
+  `).join('') || '<div class="needs-action-empty">Nothing logged yet.</div>';
+
+  document.getElementById('comingUp').innerHTML = comingRows.map(r=>`
+    <div class="coming-item"><div class="coming-date">${r.Date||''}</div><div class="coming-title">${r.Title||''}</div><div class="coming-desc">${r.Description||''}</div>${r.Tag?`<div class="coming-tag">${r.Tag}</div>`:''}</div>
+  `).join('') || '<div class="needs-action-empty">Nothing added yet.</div>';
+
+  document.getElementById('decisionsNeeded').innerHTML = decisionRows.map(r=>`
+    <div class="decision-card"><div class="decision-title">${r.Decision||''}</div><div class="decision-detail">Affects: ${r['Affects Drop']||''}${r.Context?` (${r.Context})`:''}${r.Owner?` · owner: ${r.Owner}`:''}</div></div>
+  `).join('') || '<div class="needs-action-empty">Nothing pending.</div>';
+}
+
+// ============ RENDER: CALENDAR ============
+function renderCalendar(){
+  const today = new Date();
+  const grid = document.getElementById('calendarGrid');
+  let html = '';
+  for(let offset=0; offset<3; offset++){
+    const monthDate = new Date(today.getFullYear(), today.getMonth()+offset, 1);
+    const monLabel = `${MONTHS[monthDate.getMonth()]} ${monthDate.getFullYear()}`;
+    const firstDay = monthDate.getDay();
+    const daysInMonth = new Date(monthDate.getFullYear(), monthDate.getMonth()+1, 0).getDate();
+    const launchesThisMonth = DROPS.filter(d=>{
+      const dt = parseFlexDate(d['Live on PDP']);
+      return dt && dt.getMonth()===monthDate.getMonth() && dt.getFullYear()===monthDate.getFullYear();
+    });
+    html += `<div class="cal-month"><h4>${monLabel}</h4><div class="cal-grid">`;
+    ['S','M','T','W','T','F','S'].forEach(d=> html += `<div class="cal-day-label">${d}</div>`);
+    for(let i=0;i<firstDay;i++) html += `<div class="cal-cell empty"></div>`;
+    for(let day=1; day<=daysInMonth; day++){
+      const dayLaunches = launchesThisMonth.filter(d=> parseFlexDate(d['Live on PDP']).getDate()===day);
+      html += `<div class="cal-cell"><div class="cal-daynum">${day}</div>${dayLaunches.map(d=>`<div class="cal-launch" title="${d['Drop Name']}">${d['Drop Name']}</div>`).join('')}</div>`;
+    }
+    html += `</div></div>`;
+  }
+  grid.innerHTML = html;
+}
+
+// ============ TABS ============
 function showTab(id){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===id));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.querySelector('.tab[onclick="showTab(\''+id+'\')"]').classList.add('active');
   document.getElementById('p-'+id).classList.add('active');
 }
-function togglePanel(id){
-  const p=document.getElementById('panel-'+id);
-  const o=p.classList.contains('open');
-  document.querySelectorAll('.expand-panel').forEach(e=>e.classList.remove('open'));
-  if(!o)p.classList.add('open');
-}
-function toggleDrop(id){
-  const row=document.querySelector('.launch-row[onclick="toggleDrop(\''+id+'\')"]');
-  const detail=document.getElementById('detail-'+id);
-  const isOpen=detail.classList.contains('open');
-  document.querySelectorAll('.launch-row').forEach(r=>r.classList.remove('open'));
-  document.querySelectorAll('.detail-row').forEach(d=>d.classList.remove('open'));
-  if(!isOpen){row.classList.add('open');detail.classList.add('open');}
-}
 
-function toggleH1(){
-  const body=document.getElementById('h1Body');
-  const chev=document.getElementById('h1Chevron');
-  body.classList.toggle('open');
-  chev.classList.toggle('open');
-}
+// ============ INIT ============
+async function init(){
+  try{
+    const [dropsRaw, mainRows, changedRows, comingRows, decisionRows, blurbRows] = await Promise.all([
+      fetchTab(TABS.drops), fetchTab(TABS.mainThings), fetchTab(TABS.whatChanged),
+      fetchTab(TABS.comingUp), fetchTab(TABS.decisions), fetchTab(TABS.blurb)
+    ]);
+    DROPS = dropsRaw;
 
-function goToDrop(id){
-  const row=document.querySelector('.launch-row[onclick="toggleDrop(\''+id+'\')"]');
-  const detail=document.getElementById('detail-'+id);
-  if(!row)return;
-  document.querySelectorAll('.launch-row').forEach(r=>r.classList.remove('open'));
-  document.querySelectorAll('.detail-row').forEach(d=>d.classList.remove('open'));
-  row.classList.add('open');detail.classList.add('open');
-  // switch to home tab first
-  showTab('home');
-  setTimeout(()=>row.scrollIntoView({behavior:'smooth',block:'center'}),80);
-}
+    document.getElementById('loadingMsg').style.display = 'none';
+    document.getElementById('p-home').style.display = 'block';
+    document.getElementById('updatedTag').textContent = 'Live data';
+    const now = new Date();
+    document.getElementById('metaDate').textContent = now.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
 
-// ── Badge hover tooltips ──
-const BADGE_TIPS={
-  'Planned':      {title:'Planned',body:'Pre-production. Working on the plan.',bg:'#EDECEA',border:'#BBBBC0',tc:'#3A3A3A',bc:'#6B6B73'},
-  'In Progress':  {title:'In Progress',body:'Active production. Project is in action: details scope, shoot planned, etc.',bg:'#FDF4E7',border:'#D4920A',tc:'#A86200',bc:'#6A4000'},
-  'Almost There': {title:'Almost There',body:'Assets done. 80% there. Almost live on site.',bg:'#FBF6EC',border:'#C4A265',tc:'#8A6A30',bc:'#6A5020'},
-  'Live':         {title:'Live',body:'Drop is on site. Check the MKT date if a push is happening.',bg:'#EDF7F2',border:'#1A9C5B',tc:'#1A9C5B',bc:'#0F6B3E'},
-  'Done':         {title:'Done',body:'Campaign complete. All channels off. Post-mortem due.',bg:'#EDECEA',border:'#BBBBC0',tc:'#3A3A3A',bc:'#6B6B73'},
-  'On Hold':      {title:'On Hold',body:'Paused. Waiting on a decision, resource, or external signal before moving.',bg:'#FDF0F0',border:'#E5484D',tc:'#C03538',bc:'#8A2225'},
-  'Strategic':    {title:'Strategic Priority',body:'Tied to larger marketing objectives, not necessarily drop-driven.',bg:'#FCF0F6',border:'#D6388A',tc:'#B72C73',bc:'#8A2058'},
-  'Full':         {title:'Full Support',body:'Hero treatment. New concept or category.',bg:'#EFF4FE',border:'#3B82F6',tc:'#2563EB',bc:'#1A4DB3'},
-  'Light':        {title:'Light Support',body:'Standard launch or expansion of an existing line.',bg:'#FBF6EC',border:'#C4A265',tc:'#8A6A30',bc:'#6A5020'},
-  'Live-Only':    {title:'Live-Only',body:'PDPs only. Product goes live with minimal activation.',bg:'#EDECEA',border:'#BBBBC0',tc:'#3A3A3A',bc:'#6B6B73'},
-};
-
-function attachBadgeTips(){
-  document.querySelectorAll('.st,.tier').forEach(el=>{
-    const key=el.textContent.trim();
-    const tip=BADGE_TIPS[key];
-    if(!tip)return;
-    const wrap=document.createElement('span');
-    wrap.className='tip-wrap';
-    el.parentNode.insertBefore(wrap,el);
-    wrap.appendChild(el);
-    const box=document.createElement('div');
-    box.className='tip-box';
-    box.style.background=tip.bg;
-    box.style.borderColor=tip.border;
-    const arrow=document.createElement('span');
-    arrow.className='tip-arrow';
-    arrow.style.borderTopColor=tip.border;
-    arrow.style.borderTopWidth='6px';
-    arrow.style.borderTopStyle='solid';
-    box.innerHTML=`<span class="tip-title" style="color:${tip.tc}">${tip.title}</span><span class="tip-body" style="color:${tip.bc}">${tip.body}</span>`;
-    box.appendChild(arrow);
-    wrap.appendChild(box);
-  });
-}
-function toggleMonth(id){
-  const rows=document.getElementById('month-rows-'+id);
-  const chev=document.getElementById('month-chev-'+id);
-  if(!rows||!chev)return;
-  const wasOpen=rows.classList.contains('open');
-  rows.classList.toggle('open');
-  chev.classList.toggle('open');
-  if(!wasOpen){
-    requestAnimationFrame(()=>{
-      const headerRow=chev.closest('tr');
-      if(headerRow)headerRow.scrollIntoView({block:'start',behavior:'smooth'});
-    });
+    renderKPIs();
+    renderTable();
+    renderBulletin(blurbRows, mainRows, changedRows, comingRows, decisionRows);
+    renderCalendar();
+  } catch(err){
+    document.getElementById('loadingMsg').style.display = 'none';
+    const errEl = document.getElementById('errorMsg');
+    errEl.style.display = 'block';
+    errEl.innerHTML = `<div class="error-banner"><strong>Couldn't load dashboard data.</strong><br>${err.message}</div>`;
+    console.error(err);
   }
 }
-// Archive uses toggleMonth('archive')
-
-// ── Launching This Week Strip ──
-const DROPS=[
-  {id:'animals',name:'Animals + Sea World',date:'2026-04-16',skus:8},
-  {id:'pearls',name:'Pearls',date:'2026-04-30',skus:6},
-  {id:'wc',name:'World Cup',date:'2026-04-30',skus:6},
-  {id:'coral',name:'Coral Dream Box',date:'2026-05-05',skus:2},
-  {id:'caps',name:'Baseball Caps',date:'2026-05-06',skus:5},
-  {id:'wish',name:'Wish Ribbon',date:'2026-05-06',skus:4},
-  {id:'food',name:'Food & Cocktails',date:'2026-05-07',skus:20},
-  {id:'bracD1',name:'Bracelets D1',date:'2026-05-07',skus:8},
-  {id:'hamburger',name:'Hamburger Cases',date:'2026-05-07',skus:2},
-  {id:'lisbon',name:'Lisbon Sample Sale',date:'2026-05-08',skus:0},
-  {id:'summer',name:'The Maré',date:'2026-05-21',skus:4},
-  {id:'fanstation',name:'Fan Station',date:'2026-06-04',skus:0},
-  {id:'bach',name:'Bachelorette Box 2.0',date:'2026-06-04',skus:4},
-  {id:'daphne',name:'Daphne Expansion',date:'2026-06-11',skus:10},
-  {id:'brideywifey',name:'Bridey & Wifey',date:'2026-06-18',skus:4},
-  {id:'bracD2',name:'Bracelets D2',date:'2026-06-18',skus:9},
-  {id:'essentials4',name:'Essentials Drop 4',date:'2026-06-18',skus:7},
-  {id:'summersale',name:'Summer Sale 2026',date:'2026-06-18',skus:0},
-  {id:'universities',name:'Universities',date:'2026-07-09',skus:37},
-  {id:'maregift',name:'The Maré Gifting',date:'2026-07-17',skus:0},
-  {id:'margarita',name:'Margarita Necklace',date:'2026-07-15',skus:1},
-  {id:'newbloom',name:'Bloomwave Pattern',date:'2026-07-30',skus:4},
-  {id:'monogram',name:'Monogram Bracelet',date:'2026-09-15',skus:3},
-  {id:'wintersports',name:'Winter Sports',date:'2026-10-01',skus:2},
-  {id:'jewelryboxes',name:'New Jewelry Boxes',date:'2026-10-01',skus:3},
-  {id:'blackfriday',name:'Black Friday 2026',date:'2026-10-30',skus:0},
-  {id:'amari',name:'Amari Collection',date:'2026-11-05',skus:9},
-  {id:'surprisebox',name:'Surprise Box',date:'2026-11-05',skus:5},
-  {id:'magicfamily',name:'Magic of Family',date:'2026-11-26',skus:0},
-  {id:'visionboard',name:'Manifestation: Vision Board',date:'2026-12-03',skus:0},
-];
-function buildWeekStrip(){
-  const strip=document.getElementById('weekStrip');
-  const empty=document.getElementById('weekEmpty');
-  const today=new Date();
-  today.setHours(0,0,0,0);
-  const end=new Date(today);
-  end.setDate(end.getDate()+7);
-  const upcoming=DROPS.filter(d=>{
-    const dt=new Date(d.date);
-    return dt>=today && dt<=end;
-  });
-  if(upcoming.length===0){empty.style.display='';return;}
-  upcoming.forEach(d=>{
-    const dt=new Date(d.date);
-    const diff=Math.round((dt-today)/(1000*60*60*24));
-    const dayLabel=diff===0?'Today':diff===1?'Tomorrow':`in ${diff}d`;
-    const dateLabel=dt.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    const chip=document.createElement('span');
-    chip.className='week-chip';
-    chip.innerHTML=`<span class="week-chip-name">${d.name}</span><span class="week-chip-date">${dateLabel}</span><span class="week-chip-days">${dayLabel}</span>`;
-    chip.onclick=()=>goToDrop(d.id);
-    strip.appendChild(chip);
-  });
-}
-function buildCalendar(){
-  const grid=document.getElementById('calendarGrid');
-  if(!grid)return;
-  const MONTH_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const DOW=['S','M','T','W','T','F','S'];
-  // group drops by YYYY-MM-DD
-  const byDate={};
-  DROPS.forEach(d=>{
-    if(!d.date)return;
-    (byDate[d.date]=byDate[d.date]||[]).push(d);
-  });
-  // Next 3 months, starting with the current month
-  const today0=new Date();
-  const startYear=today0.getFullYear();
-  const startMonth=today0.getMonth();
-  for(let offset=0;offset<3;offset++){
-    const y=startYear+Math.floor((startMonth+offset)/12);
-    const m=(startMonth+offset)%12;
-    const first=new Date(y,m,1);
-    const daysInMonth=new Date(y,m+1,0).getDate();
-    const startDow=first.getDay();
-    const monthEl=document.createElement('div');
-    monthEl.className='cal-month';
-    let html=`<div class="cal-month-title">${MONTH_NAMES[m]} ${y}</div><div class="cal-grid">`;
-    DOW.forEach(d=>html+=`<div class="cal-dow">${d}</div>`);
-    for(let i=0;i<startDow;i++)html+='<div class="cal-day blank"></div>';
-    for(let day=1;day<=daysInMonth;day++){
-      const key=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-      const isToday=(y===today0.getFullYear()&&m===today0.getMonth()&&day===today0.getDate());
-      const launches=byDate[key];
-      if(launches&&launches.length){
-        const shown=launches.slice(0,2);
-        let inner=`<span class="cdn">${day}</span>`;
-        shown.forEach(l=>inner+=`<span class="cal-launch-dot">${l.name}</span>`);
-        if(launches.length>shown.length)inner+=`<span class="cal-launch-more">+${launches.length-shown.length} more</span>`;
-        const clickId=launches[0].id;
-        html+=`<div class="cal-day has-launch${isToday?' is-today':''}" onclick="goToDrop('${clickId}')" title="${launches.map(l=>l.name).join(', ')}">${inner}</div>`;
-      }else{
-        html+=`<div class="cal-day${isToday?' is-today':''}"><span class="cdn">${day}</span></div>`;
-      }
-    }
-    html+='</div>';
-    monthEl.innerHTML=html;
-    grid.appendChild(monthEl);
-  }
-}
-function buildNeedsActionDetail(){
-  const body=document.getElementById('needsActionBody');
-  const rangeEl=document.getElementById('needsActionRange');
-  if(!body)return;
-  const today=new Date();today.setHours(0,0,0,0);
-  const end=new Date(today);end.setDate(end.getDate()+7);
-  if(rangeEl)rangeEl.textContent=`${today.toLocaleDateString('en-US',{month:'short',day:'numeric'})} – ${end.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`;
-  const upcoming=DROPS.filter(d=>{const dt=new Date(d.date);return dt>=today&&dt<=end;});
-  if(upcoming.length===0){
-    body.innerHTML=`<div class="pri-decision-empty">Nothing with a live date in the next 7 days. This only tracks .com dates.</div>`;
-    return;
-  }
-  body.innerHTML=upcoming.map(d=>{
-    const dt=new Date(d.date);
-    const diff=Math.round((dt-today)/(1000*60*60*24));
-    const dayLabel=diff===0?'Today':diff===1?'Tomorrow':`in ${diff} days`;
-    const dateLabel=dt.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    return `<div class="pri-upcoming-item" onclick="goToDrop('${d.id}')">
-      <div class="pri-upcoming-date">${dateLabel}</div>
-      <div class="pri-upcoming-name">${d.name} goes live</div>
-      <div class="pri-upcoming-sub">${dayLabel}</div>
-    </div>`;
-  }).join('');
-}
-
-document.addEventListener('DOMContentLoaded',()=>{
-  buildCalendar();
-  buildNeedsActionDetail();
-});
-
-// ── Dynamic next-launch countdown ──
-document.addEventListener('DOMContentLoaded',()=>{
-  const NEXT_LAUNCH_DATE = new Date('2026-07-15');
-  const todayNL = new Date(); todayNL.setHours(0,0,0,0);
-  const diffNL = Math.round((NEXT_LAUNCH_DATE - todayNL)/(1000*60*60*24));
-  const nlEl = document.getElementById('nextLaunchDays');
-  if(nlEl){
-    if(diffNL===0) nlEl.textContent='Today';
-    else if(diffNL===1) nlEl.textContent='Tomorrow';
-    else if(diffNL>0) nlEl.textContent=`in ${diffNL} days`;
-    else nlEl.textContent='Live';
-  }
-  attachBadgeTips();
-  buildWeekStrip();
-  // ── This Week date range (Mon–Fri) ──
-  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const now=new Date();
-  const day=now.getDay(); // 0=Sun, 6=Sat
-  // If weekend, show NEXT week. Else show current Mon-Fri.
-  const diffToMon = day===0 ? 1 : day===6 ? 2 : 1-day;
-  const mon=new Date(now); mon.setDate(now.getDate()+diffToMon); mon.setHours(0,0,0,0);
-  const fri=new Date(mon); fri.setDate(mon.getDate()+4);
-  const fmt=d=>`${MONTHS[d.getMonth()]} ${d.getDate()}`;
-  const label=mon.getMonth()===fri.getMonth()
-    ? `${MONTHS[mon.getMonth()]} ${mon.getDate()}–${fri.getDate()}`
-    : `${fmt(mon)} – ${fmt(fri)}`;
-  const el=document.getElementById('weekRangeHeader');
-  if(el) el.textContent=`This Week: ${label}`;
-});
+init();
 </script>
 </body>
 </html>
