@@ -138,7 +138,7 @@ tr.month-sep td{background:var(--surface-2);font-weight:700;cursor:pointer;paddi
   <div class="section-title">All Launches</div>
   <table>
     <thead><tr>
-      <th></th><th>Drop</th><th>Status</th><th>Tier</th><th>Live on PDP</th><th>MKT Comms</th><th>Owner</th><th>Notes</th>
+      <th></th><th>Drop</th><th>Status</th><th>Tier</th><th>Live on PDP</th><th>MKT Comms</th><th>Details</th>
     </tr></thead>
     <tbody id="tableBodyAnchor"></tbody>
   </table>
@@ -289,8 +289,22 @@ function statusClass(status){
   return '';
 }
 function renderDropRow(d, gid, ri){
-  const notesId = `notes-${gid}-${ri}`;
-  const notesShort = (d.Notes||'').split('|')[0].slice(0,80);
+  const detailsId = `details-${gid}-${ri}`;
+  const fields = [
+    ['Product', d['Product']],
+    ['For', d['For']],
+    ['Why Now', d['Why Now']],
+    ['Pillar', d['Pillar']],
+    ['Key Info', d['Key Info']],
+    ['Risk', d['Risk']],
+    ['Missing Input', d['Missing Input']],
+  ].filter(([label, val]) => val && val.trim());
+
+  const hasDetails = fields.length > 0;
+  const detailsHtml = fields.map(([label, val]) =>
+    `<div style="margin-bottom:6px"><strong>${label}:</strong> ${val.replace(/\|/g, '<br>')}</div>`
+  ).join('');
+
   return `<tr>
     <td><span class="half-tag">${d.Half||''}</span></td>
     <td><strong>${d['Drop Name']||''}</strong></td>
@@ -298,10 +312,8 @@ function renderDropRow(d, gid, ri){
     <td>${d.Tier||''}</td>
     <td>${d['Live on PDP']||'—'}</td>
     <td>${d['MKT Comms']||'—'}</td>
-    <td>${d.Owner||'—'}</td>
     <td>
-      ${notesShort? notesShort+'…' : '—'}
-      ${d.Notes? `<div><span class="notes-toggle" onclick="toggleNotes('${notesId}')">show all</span></div><div class="notes-full" id="${notesId}">${(d.Notes||'').replace(/\|/g,'\n')}</div>`:''}
+      ${hasDetails ? `<span class="notes-toggle" onclick="toggleNotes('${detailsId}')">show details</span><div class="notes-full" id="${detailsId}">${detailsHtml}</div>` : '—'}
     </td>
   </tr>`;
 }
@@ -335,7 +347,7 @@ function renderTable(){
   orderedKeys.forEach((mon,gi)=>{
     const gid = `grp-${gi}`;
     const isCurrent = mon === currentMonthName;
-    bodies += `<tbody><tr class="month-sep" onclick="toggleGroup('${gid}')"><td colspan="8"><span class="month-chevron ${isCurrent?'open':''}" id="chev-${gid}">›</span> ${mon} (${groups[mon].length})</td></tr></tbody>`;
+    bodies += `<tbody><tr class="month-sep" onclick="toggleGroup('${gid}')"><td colspan="7"><span class="month-chevron ${isCurrent?'open':''}" id="chev-${gid}">›</span> ${mon} (${groups[mon].length})</td></tr></tbody>`;
     bodies += `<tbody class="month-rows ${isCurrent?'open':''}" id="${gid}">`;
     groups[mon].forEach((d,ri)=> bodies += renderDropRow(d, gid, ri));
     bodies += `</tbody>`;
@@ -344,7 +356,7 @@ function renderTable(){
   // Archive: any drop (H1 or H2) more than 7 days past its latest relevant date
   if(archived.length){
     const gid = 'grp-archive';
-    bodies += `<tbody><tr class="month-sep" onclick="toggleGroup('${gid}')"><td colspan="8"><span class="month-chevron" id="chev-${gid}">›</span> Archive (${archived.length})</td></tr></tbody>`;
+    bodies += `<tbody><tr class="month-sep" onclick="toggleGroup('${gid}')"><td colspan="7"><span class="month-chevron" id="chev-${gid}">›</span> Archive (${archived.length})</td></tr></tbody>`;
     bodies += `<tbody class="month-rows" id="${gid}">`;
     archived.forEach((d,ri)=> bodies += renderDropRow(d, gid, ri));
     bodies += `</tbody>`;
