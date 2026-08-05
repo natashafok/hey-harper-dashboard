@@ -103,7 +103,11 @@ tr.month-sep td{background:var(--surface-2);font-weight:700;cursor:pointer;paddi
 .cal-cell{background:var(--surface);border:1px solid var(--border);border-radius:6px;min-height:56px;padding:4px;font-size:10px;position:relative;}
 .cal-cell.empty{background:transparent;border:none;}
 .cal-daynum{font-weight:700;color:var(--text-secondary);}
-.cal-launch{background:var(--pink);color:#fff;border-radius:4px;padding:1px 4px;margin-top:2px;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cal-launch{border-radius:4px;padding:1px 4px;margin-top:2px;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff;}
+.cal-launch-pdp{background:var(--pink);}
+.cal-launch-mkt{background:var(--blue);}
+.cal-legend{display:flex;gap:16px;margin-bottom:16px;font-size:12px;color:var(--text-secondary);align-items:center;}
+.cal-legend-swatch{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:middle;}
 </style>
 </head>
 <body>
@@ -166,6 +170,10 @@ tr.month-sep td{background:var(--surface-2);font-weight:700;cursor:pointer;paddi
 </div>
 
 <div class="panel" id="p-calendar">
+  <div class="cal-legend">
+    <span><span class="cal-legend-swatch" style="background:var(--pink)"></span>Live on PDP</span>
+    <span><span class="cal-legend-swatch" style="background:var(--blue)"></span>MKT Comms (when different from PDP date)</span>
+  </div>
   <div id="calendarGrid"></div>
 </div>
 
@@ -395,16 +403,36 @@ function renderCalendar(){
     const monLabel = `${MONTHS[monthDate.getMonth()]} ${monthDate.getFullYear()}`;
     const firstDay = monthDate.getDay();
     const daysInMonth = new Date(monthDate.getFullYear(), monthDate.getMonth()+1, 0).getDate();
-    const launchesThisMonth = DROPS.filter(d=>{
-      const dt = parseFlexDate(d['Live on PDP']);
-      return dt && dt.getMonth()===monthDate.getMonth() && dt.getFullYear()===monthDate.getFullYear();
+
+    // Build a map of day -> [{name, type}] for both PDP and MKT dates
+    const dayEvents = {};
+    DROPS.forEach(d=>{
+      const pdpDate = parseFlexDate(d['Live on PDP']);
+      const mktDate = parseFlexDate(d['MKT Comms']);
+      const samePDP = pdpDate && pdpDate.getMonth()===monthDate.getMonth() && pdpDate.getFullYear()===monthDate.getFullYear();
+      const sameMKT = mktDate && mktDate.getMonth()===monthDate.getMonth() && mktDate.getFullYear()===monthDate.getFullYear();
+      const datesDiffer = pdpDate && mktDate && pdpDate.getTime() !== mktDate.getTime();
+
+      if(samePDP){
+        const day = pdpDate.getDate();
+        dayEvents[day] = dayEvents[day] || [];
+        // Label as PDP only if it differs from MKT (or MKT is missing); otherwise just show the name once
+        const label = (mktDate && !datesDiffer) ? d['Drop Name'] : `${d['Drop Name']} (PDP)`;
+        dayEvents[day].push({name: label, type:'pdp'});
+      }
+      if(sameMKT && datesDiffer){
+        const day = mktDate.getDate();
+        dayEvents[day] = dayEvents[day] || [];
+        dayEvents[day].push({name: `${d['Drop Name']} (MKT)`, type:'mkt'});
+      }
     });
+
     html += `<div class="cal-month"><h4>${monLabel}</h4><div class="cal-grid">`;
     ['S','M','T','W','T','F','S'].forEach(d=> html += `<div class="cal-day-label">${d}</div>`);
     for(let i=0;i<firstDay;i++) html += `<div class="cal-cell empty"></div>`;
     for(let day=1; day<=daysInMonth; day++){
-      const dayLaunches = launchesThisMonth.filter(d=> parseFlexDate(d['Live on PDP']).getDate()===day);
-      html += `<div class="cal-cell"><div class="cal-daynum">${day}</div>${dayLaunches.map(d=>`<div class="cal-launch" title="${d['Drop Name']}">${d['Drop Name']}</div>`).join('')}</div>`;
+      const events = dayEvents[day] || [];
+      html += `<div class="cal-cell"><div class="cal-daynum">${day}</div>${events.map(e=>`<div class="cal-launch cal-launch-${e.type}" title="${e.name}">${e.name}</div>`).join('')}</div>`;
     }
     html += `</div></div>`;
   }
