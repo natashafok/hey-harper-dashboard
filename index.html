@@ -256,9 +256,10 @@ let DROPS = [];
 
 // ============ RENDER: KPI ============
 function renderKPIs(){
+  const activeDrops = DROPS.filter(d => !isArchived(d));
   const total = DROPS.length;
-  const blockers = DROPS.filter(d=> d.Blocker && d.Blocker.toLowerCase()==='yes');
-  const missing = DROPS.filter(d=> d['Missing Input'] && d['Missing Input'].trim());
+  const blockers = activeDrops.filter(d=> d.Blocker && d.Blocker.toLowerCase()==='yes');
+  const missing = activeDrops.filter(d=> d['Missing Input'] && d['Missing Input'].trim());
   const today = new Date(); today.setHours(0,0,0,0);
   const future = DROPS.map(d=>parseFlexDate(d['Live on PDP'])).filter(d=>d && d>=today).sort((a,b)=>a-b);
   const nextLaunch = future[0];
