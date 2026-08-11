@@ -372,8 +372,18 @@ function toggleGroup(id){
 function toggleNotes(id){ document.getElementById(id).classList.toggle('open'); }
 
 // ============ RENDER: BULLETIN BOARD ============
+function formatBlurb(text){
+  if(!text) return '';
+  // Convert **bold** markdown to <strong>, and line breaks to <br><br>
+  let html = text
+    .replace(/\r/g, '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .split(/\n+/).map(p => p.trim()).filter(Boolean).join('<br><br>');
+  return html;
+}
 function renderBulletin(blurbRows, mainRows, changedRows, comingRows, decisionRows){
-  document.getElementById('leadsBlurb').textContent = blurbRows[0] ? blurbRows[0][Object.keys(blurbRows[0])[0]] : '';
+  document.getElementById('leadsBlurb').innerHTML = blurbRows[0] ? formatBlurb(blurbRows[0][Object.keys(blurbRows[0])[0]]) : '';
 
   document.getElementById('mainThings').innerHTML = mainRows.map(r=>`
     <div class="main-card"><h4>${r.Title||''}</h4><p>${r.Description||''}</p></div>
