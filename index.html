@@ -97,7 +97,47 @@ tr.month-sep td{background:var(--surface-2);font-weight:700;cursor:pointer;paddi
 .detail-field{display:flex;align-items:flex-start;gap:24px;}
 .detail-label{flex:0 0 130px;color:var(--pink-dark);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;padding-top:2px;}
 .detail-value{flex:1;font-size:15px;color:var(--text-primary);line-height:1.5;}
-.tier-badge{cursor:help;border-bottom:1px dotted var(--text-secondary);}
+.tier-badge{cursor:help;border-bottom:1px dotted var(--text-secondary);position:relative;}
+.tier-badge::after{
+  content:attr(data-tooltip);
+  position:absolute;
+  bottom:135%;
+  left:50%;
+  transform:translateX(-50%);
+  background:var(--pink-light);
+  color:var(--pink-dark);
+  padding:10px 14px;
+  border-radius:12px;
+  font-size:12px;
+  font-weight:500;
+  line-height:1.45;
+  white-space:normal;
+  width:220px;
+  text-align:left;
+  box-shadow:0 4px 12px rgba(0,0,0,0.12);
+  opacity:0;
+  visibility:hidden;
+  transition:opacity .15s ease;
+  z-index:50;
+  pointer-events:none;
+}
+.tier-badge::before{
+  content:'';
+  position:absolute;
+  bottom:120%;
+  left:50%;
+  transform:translateX(-50%);
+  border:6px solid transparent;
+  border-top-color:var(--pink-light);
+  opacity:0;
+  visibility:hidden;
+  transition:opacity .15s ease;
+  z-index:50;
+}
+.tier-badge:hover::after, .tier-badge:hover::before{
+  opacity:1;
+  visibility:visible;
+}
 
 /* Calendar */
 .cal-month{margin-bottom:28px;}
@@ -303,7 +343,7 @@ function tierBadge(tier){
   if(!tier || !tier.trim()) return '—';
   const key = tier.trim().toLowerCase();
   const def = TIER_DEFS[key] || '';
-  return `<span class="tier-badge" title="${def}">${tier}</span>`;
+  return `<span class="tier-badge" data-tooltip="${def}">${tier}</span>`;
 }
 function renderDropRow(d, gid, ri){
   const detailsId = `details-${gid}-${ri}`;
