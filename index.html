@@ -76,7 +76,7 @@ body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,
 
 /* Table */
 table{width:100%;border-collapse:collapse;font-size:13px;}
-th{text-align:left;padding:10px 12px;font-size:11px;text-transform:uppercase;letter-spacing:0.03em;color:var(--text-secondary);border-bottom:2px solid var(--border);white-space:nowrap;}
+th{text-align:left;padding:10px 12px;font-size:11px;text-transform:uppercase;letter-spacing:0.03em;color:var(--text-secondary);border-bottom:2px solid var(--border);white-space:nowrap;position:sticky;top:0;background:var(--bg);z-index:10;}
 td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
 tr.month-sep td{background:var(--surface-2);font-weight:700;cursor:pointer;padding:10px 12px;}
 .month-chevron{transition:transform .15s;display:inline-block;}
@@ -92,8 +92,12 @@ tr.month-sep td{background:var(--surface-2);font-weight:700;cursor:pointer;paddi
 .tag{display:inline-block;background:var(--pink-light);color:var(--pink-dark);font-size:11px;padding:2px 8px;border-radius:8px;margin:2px 3px 2px 0;}
 .half-tag{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:var(--surface-2);color:var(--text-secondary);}
 .notes-toggle{color:var(--pink);cursor:pointer;font-size:12px;font-weight:600;}
-.notes-full{display:none;white-space:pre-wrap;margin-top:6px;font-size:12px;color:var(--text-secondary);}
-.notes-full.open{display:block;}
+.details-row td{padding:0;background:var(--surface);}
+.details-panel{padding:20px 28px;display:flex;flex-direction:column;gap:16px;}
+.detail-field{display:flex;align-items:flex-start;gap:24px;}
+.detail-label{flex:0 0 130px;color:var(--pink-dark);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;padding-top:2px;}
+.detail-value{flex:1;font-size:15px;color:var(--text-primary);line-height:1.5;}
+.tier-badge{cursor:help;border-bottom:1px dotted var(--text-secondary);}
 
 /* Calendar */
 .cal-month{margin-bottom:28px;}
@@ -138,7 +142,7 @@ tr.month-sep td{background:var(--surface-2);font-weight:700;cursor:pointer;paddi
   <div class="section-title">All Launches</div>
   <table>
     <thead><tr>
-      <th></th><th>Drop</th><th>Status</th><th>Tier</th><th>Live on PDP</th><th>MKT Comms</th><th>Details</th>
+      <th></th><th>Drop</th><th>Live on PDP</th><th>MKT Comms</th><th>SKUs</th><th>Tier</th><th>Status</th><th>Details</th>
     </tr></thead>
     <tbody id="tableBodyAnchor"></tbody>
   </table>
@@ -289,6 +293,18 @@ function statusClass(status){
   if(/hold/i.test(status)) return 'status-Hold';
   return '';
 }
+const TIER_DEFS = {
+  'full': 'Full Support: hero placement, dedicated ads, CRM sequences, unique PDPs, landing pages.',
+  'light': 'Light Support: CRM mention, basic/reframed ads, PDPs live, no dedicated campaign.',
+  'live-only': 'Live-Only: PDPs live, maybe a marketing card, no ads or CRM.',
+  'strategic priority': 'Strategic Priority: major cultural/commercial moments, CMO-level priority with dedicated budget.'
+};
+function tierBadge(tier){
+  if(!tier || !tier.trim()) return '—';
+  const key = tier.trim().toLowerCase();
+  const def = TIER_DEFS[key] || '';
+  return `<span class="tier-badge" title="${def}">${tier}</span>`;
+}
 function renderDropRow(d, gid, ri){
   const detailsId = `details-${gid}-${ri}`;
   const fields = [
@@ -303,20 +319,25 @@ function renderDropRow(d, gid, ri){
 
   const hasDetails = fields.length > 0;
   const detailsHtml = fields.map(([label, val]) =>
-    `<div style="margin-bottom:6px"><strong>${label}:</strong> ${val.replace(/\|/g, '<br>')}</div>`
+    `<div class="detail-field"><span class="detail-label">${label}</span><span class="detail-value">${val.replace(/\|/g, '<br>')}</span></div>`
   ).join('');
 
-  return `<tr>
+  const mainRow = `<tr>
     <td><span class="half-tag">${d.Half||''}</span></td>
     <td><strong>${d['Drop Name']||''}</strong></td>
-    <td><span class="status-badge ${statusClass(d.Status)}">${d.Status||''}</span></td>
-    <td>${d.Tier||''}</td>
     <td>${d['Live on PDP']||'—'}</td>
     <td>${d['MKT Comms']||'—'}</td>
-    <td>
-      ${hasDetails ? `<span class="notes-toggle" onclick="toggleNotes('${detailsId}')">show details</span><div class="notes-full" id="${detailsId}">${detailsHtml}</div>` : '—'}
-    </td>
+    <td>${d['SKUs']||'—'}</td>
+    <td>${tierBadge(d.Tier)}</td>
+    <td><span class="status-badge ${statusClass(d.Status)}">${d.Status||''}</span></td>
+    <td>${hasDetails ? `<span class="notes-toggle" onclick="toggleNotes('${detailsId}')" id="toggle-${detailsId}">show details</span>` : '—'}</td>
   </tr>`;
+
+  const detailsRow = hasDetails ? `<tr class="details-row" id="${detailsId}" style="display:none">
+    <td colspan="8"><div class="details-panel">${detailsHtml}</div></td>
+  </tr>` : '';
+
+  return mainRow + detailsRow;
 }
 function isArchived(d){
   const today = new Date(); today.setHours(0,0,0,0);
@@ -348,7 +369,7 @@ function renderTable(){
   orderedKeys.forEach((mon,gi)=>{
     const gid = `grp-${gi}`;
     const isCurrent = mon === currentMonthName;
-    bodies += `<tbody><tr class="month-sep" onclick="toggleGroup('${gid}')"><td colspan="7"><span class="month-chevron ${isCurrent?'open':''}" id="chev-${gid}">›</span> ${mon} (${groups[mon].length})</td></tr></tbody>`;
+    bodies += `<tbody><tr class="month-sep" onclick="toggleGroup('${gid}')"><td colspan="8"><span class="month-chevron ${isCurrent?'open':''}" id="chev-${gid}">›</span> ${mon} (${groups[mon].length})</td></tr></tbody>`;
     bodies += `<tbody class="month-rows ${isCurrent?'open':''}" id="${gid}">`;
     groups[mon].forEach((d,ri)=> bodies += renderDropRow(d, gid, ri));
     bodies += `</tbody>`;
@@ -357,7 +378,7 @@ function renderTable(){
   // Archive: any drop (H1 or H2) more than 7 days past its latest relevant date
   if(archived.length){
     const gid = 'grp-archive';
-    bodies += `<tbody><tr class="month-sep" onclick="toggleGroup('${gid}')"><td colspan="7"><span class="month-chevron" id="chev-${gid}">›</span> Archive (${archived.length})</td></tr></tbody>`;
+    bodies += `<tbody><tr class="month-sep" onclick="toggleGroup('${gid}')"><td colspan="8"><span class="month-chevron" id="chev-${gid}">›</span> Archive (${archived.length})</td></tr></tbody>`;
     bodies += `<tbody class="month-rows" id="${gid}">`;
     archived.forEach((d,ri)=> bodies += renderDropRow(d, gid, ri));
     bodies += `</tbody>`;
@@ -369,7 +390,13 @@ function toggleGroup(id){
   document.getElementById(id).classList.toggle('open');
   document.getElementById('chev-'+id).classList.toggle('open');
 }
-function toggleNotes(id){ document.getElementById(id).classList.toggle('open'); }
+function toggleNotes(id){
+  const row = document.getElementById(id);
+  const toggle = document.getElementById('toggle-'+id);
+  const isOpen = row.style.display !== 'none';
+  row.style.display = isOpen ? 'none' : 'table-row';
+  if(toggle) toggle.textContent = isOpen ? 'show details' : 'hide details';
+}
 
 // ============ RENDER: BULLETIN BOARD ============
 function formatBlurb(text){
