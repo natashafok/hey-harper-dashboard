@@ -170,6 +170,10 @@ tr.month-sep td{background:var(--surface-2);font-weight:700;cursor:pointer;paddi
 .tl-node-tag.cat-promo{background:#EFF3FE;color:var(--blue);}
 .tl-node-tag.cat-campaign{background:#E7F9EF;color:var(--green);}
 .tl-node-tag.cat-milestone{background:#F8F2E8;color:var(--gold);}
+.tl-node-date.cat-opportunity{color:var(--yellow);}
+.tl-node-tag.cat-opportunity{background:#FFF6E5;color:var(--yellow);}
+.tl-node-date.cat-retail{color:var(--red);}
+.tl-node-tag.cat-retail{background:#FDF0F0;color:var(--red);}
 </style>
 </head>
 <body>
@@ -187,10 +191,10 @@ tr.month-sep td{background:var(--surface-2);font-weight:700;cursor:pointer;paddi
 </div>
 
 <div class="tabs">
-  <div class="tab active" data-tab="home" onclick="showTab('home')">All Launches</div>
+  <div class="tab active" data-tab="home" onclick="showTab('home')">New Drops</div>
   <div class="tab" data-tab="bulletin" onclick="showTab('bulletin')">Bulletin Board</div>
   <div class="tab" data-tab="calendar" onclick="showTab('calendar')">Calendar</div>
-  <div class="tab" data-tab="timeline" onclick="showTab('timeline')">Timeline</div>
+  <div class="tab" data-tab="timeline" onclick="showTab('timeline')">Marketing Initiatives Timeline</div>
 </div>
 
 <div id="loadingMsg" class="loading">Loading dashboard data from Google Sheet…</div>
@@ -578,10 +582,10 @@ function renderTimeline(){
       return 0;
     });
 
-  const CAT_COLORS = { launch:'#D6388A', promo:'#3B82F6', campaign:'#2FBF71', milestone:'#C4A265' };
+  const CAT_COLORS = { launch:'#D6388A', promo:'#3B82F6', campaign:'#2FBF71', milestone:'#C4A265', opportunity:'#F5A524', retail:'#E5484D' };
   function catClassFor(r){
     const cat = (r.Category||'Launch').trim().toLowerCase();
-    return ['launch','promo','campaign','milestone'].includes(cat) ? cat : 'launch';
+    return ['launch','promo','campaign','milestone','opportunity','retail'].includes(cat) ? cat : 'launch';
   }
 
   const PER_LANE = 2;      // stops per lane before the line turns
