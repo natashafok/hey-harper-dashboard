@@ -499,7 +499,7 @@ function renderBulletin(blurbRows, mainRows, changedRows, comingRows, decisionRo
   if(!in7.length){
     naEl.innerHTML = `<div class="needs-action-empty">Nothing with a live date in the next 7 days. This only tracks PDP-live dates.</div>`;
   } else {
-    naEl.innerHTML = in7.map(d=>`<div class="needs-action-item"><strong>${d['Drop Name']}</strong>Live on PDP: ${d['Live on PDP']} · Owner: ${d.Owner||'—'}</div>`).join('');
+    naEl.innerHTML = in7.map(d=>`<div class="needs-action-item"><strong>${d['Drop Name']}</strong>Live on PDP: ${d['Live on PDP']}</div>`).join('');
   }
 
   document.getElementById('whatChanged').innerHTML = changedRows.map(r=>`
