@@ -152,6 +152,27 @@ tr.month-sep td{background:var(--surface-2);font-weight:700;cursor:pointer;paddi
 .cal-launch-mkt{background:var(--blue);}
 .cal-legend{display:flex;gap:16px;margin-bottom:16px;font-size:12px;color:var(--text-secondary);align-items:center;}
 .cal-legend-swatch{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:middle;}
+
+/* Timeline */
+.timeline-wrap{position:relative;padding-left:36px;max-width:760px;}
+.timeline-line{position:absolute;left:9px;top:4px;bottom:4px;width:2px;background:var(--border);}
+.timeline-item{position:relative;padding-bottom:26px;}
+.timeline-item:last-child{padding-bottom:0;}
+.timeline-dot{position:absolute;left:-36px;top:2px;width:18px;height:18px;border-radius:50%;background:var(--surface);border:3px solid var(--border-2,var(--pink));box-shadow:0 0 0 4px var(--bg);}
+.timeline-dot.cat-launch{border-color:var(--pink);}
+.timeline-dot.cat-promo{border-color:var(--blue);}
+.timeline-dot.cat-campaign{border-color:var(--green);}
+.timeline-dot.cat-milestone{border-color:var(--gold);}
+.timeline-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;}
+.timeline-date{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--pink);margin-bottom:3px;}
+.timeline-title{font-size:15px;font-weight:700;margin-bottom:3px;}
+.timeline-desc{font-size:13px;color:var(--text-secondary);line-height:1.5;}
+.timeline-cat-tag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.03em;padding:2px 8px;border-radius:8px;margin-top:8px;}
+.timeline-cat-tag.cat-launch{background:var(--pink-light);color:var(--pink-dark);}
+.timeline-cat-tag.cat-promo{background:#EFF3FE;color:var(--blue);}
+.timeline-cat-tag.cat-campaign{background:#E7F9EF;color:var(--green);}
+.timeline-cat-tag.cat-milestone{background:#F8F2E8;color:var(--gold);}
+.timeline-empty{color:var(--text-secondary);font-style:italic;font-size:13px;}
 </style>
 </head>
 <body>
@@ -172,6 +193,7 @@ tr.month-sep td{background:var(--surface-2);font-weight:700;cursor:pointer;paddi
   <div class="tab active" data-tab="home" onclick="showTab('home')">All Launches</div>
   <div class="tab" data-tab="bulletin" onclick="showTab('bulletin')">Bulletin Board</div>
   <div class="tab" data-tab="calendar" onclick="showTab('calendar')">Calendar</div>
+  <div class="tab" data-tab="timeline" onclick="showTab('timeline')">Timeline</div>
 </div>
 
 <div id="loadingMsg" class="loading">Loading dashboard data from Google Sheet…</div>
@@ -221,6 +243,11 @@ tr.month-sep td{background:var(--surface-2);font-weight:700;cursor:pointer;paddi
   <div id="calendarGrid"></div>
 </div>
 
+<div class="panel" id="p-timeline">
+  <div class="section-title">Key Moments Timeline</div>
+  <div id="timelineGrid"></div>
+</div>
+
 <script>
 // ============ CONFIG ============
 // Each data section now lives in its OWN standalone Google Sheet (not tabs in one file).
@@ -231,7 +258,8 @@ const SHEETS = {
   whatChanged: '1ulrlWV1Z3vuLuUsUkZhF6O2YNt6odyH4FmssWssC5MU',
   comingUp: '1cNQxozJY7qaRixCsgqFtBxwvZzMB7KyL1nTXTaPk-CE',
   decisions: '1L9yRouyFmLrHHDpDfX1zjv3Pb74sYo43BNPp0velXyQ',
-  blurb: '1k-hGaoOYlhgp3jZik9xM6UL-YMgmp5WhY4q_e2xCsLg'
+  blurb: '1k-hGaoOYlhgp3jZik9xM6UL-YMgmp5WhY4q_e2xCsLg',
+  timeline: '1a8dXjiKEvs_F8GsyiuECnNE8_BT3ubrHnQtryVUw4ME'
 };
 function csvUrl(sheetId){
   return `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&_cb=${Date.now()}`;
@@ -297,6 +325,7 @@ function daysBetween(a,b){ return Math.round((b-a)/(1000*60*60*24)); }
 
 // ============ STATE ============
 let DROPS = [];
+let TIMELINE = [];
 
 // ============ RENDER: KPI ============
 function renderKPIs(){
@@ -490,7 +519,9 @@ function renderCalendar(){
   const today = new Date();
   const grid = document.getElementById('calendarGrid');
   let html = '';
-  for(let offset=0; offset<3; offset++){
+  // Show every remaining month of the current year (current month through December).
+  const monthsRemaining = 12 - today.getMonth();
+  for(let offset=0; offset<monthsRemaining; offset++){
     const monthDate = new Date(today.getFullYear(), today.getMonth()+offset, 1);
     const monLabel = `${MONTHS[monthDate.getMonth()]} ${monthDate.getFullYear()}`;
     const firstDay = monthDate.getDay();
@@ -531,6 +562,42 @@ function renderCalendar(){
   grid.innerHTML = html;
 }
 
+// ============ RENDER: TIMELINE ============
+function timelineParseDate(str){
+  // Timeline sheet dates are simple "Mon D" strings (e.g. "Sep 2"), reuse the same flexible parser.
+  return parseFlexDate(str);
+}
+function renderTimeline(){
+  const grid = document.getElementById('timelineGrid');
+  if(!TIMELINE.length){
+    grid.innerHTML = '<div class="timeline-empty">No timeline entries yet. Add rows to the Timeline Google Sheet to populate this view.</div>';
+    return;
+  }
+  const items = TIMELINE.map(r=>({...r, _date: timelineParseDate(r.Date)}))
+    .sort((a,b)=>{
+      if(a._date && b._date) return a._date - b._date;
+      if(a._date) return -1;
+      if(b._date) return 1;
+      return 0;
+    });
+
+  const html = items.map(r=>{
+    const cat = (r.Category||'Launch').trim().toLowerCase();
+    const catClass = ['launch','promo','campaign','milestone'].includes(cat) ? cat : 'launch';
+    return `<div class="timeline-item">
+      <div class="timeline-dot cat-${catClass}"></div>
+      <div class="timeline-card">
+        <div class="timeline-date">${r.Date||''}</div>
+        <div class="timeline-title">${r.Moment||''}</div>
+        ${r.Descriptor? `<div class="timeline-desc">${r.Descriptor}</div>` : ''}
+        <span class="timeline-cat-tag cat-${catClass}">${r.Category||'Launch'}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  grid.innerHTML = `<div class="timeline-wrap"><div class="timeline-line"></div>${html}</div>`;
+}
+
 // ============ TABS ============
 function showTab(id){
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===id));
@@ -541,11 +608,12 @@ function showTab(id){
 // ============ INIT ============
 async function init(){
   try{
-    const [dropsRaw, mainRows, changedRows, comingRows, decisionRows, blurbRows] = await Promise.all([
+    const [dropsRaw, mainRows, changedRows, comingRows, decisionRows, blurbRows, timelineRaw] = await Promise.all([
       fetchTab(SHEETS.drops), fetchTab(SHEETS.mainThings), fetchTab(SHEETS.whatChanged),
-      fetchTab(SHEETS.comingUp), fetchTab(SHEETS.decisions), fetchTab(SHEETS.blurb)
+      fetchTab(SHEETS.comingUp), fetchTab(SHEETS.decisions), fetchTab(SHEETS.blurb), fetchTab(SHEETS.timeline)
     ]);
     DROPS = dropsRaw;
+    TIMELINE = timelineRaw;
 
     document.getElementById('loadingMsg').style.display = 'none';
     document.getElementById('updatedTag').textContent = 'Live data';
@@ -556,6 +624,7 @@ async function init(){
     renderTable();
     renderBulletin(blurbRows, mainRows, changedRows, comingRows, decisionRows);
     renderCalendar();
+    renderTimeline();
   } catch(err){
     document.getElementById('loadingMsg').style.display = 'none';
     const errEl = document.getElementById('errorMsg');
