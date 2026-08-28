@@ -153,26 +153,29 @@ tr.month-sep td{background:var(--surface-2);font-weight:700;cursor:pointer;paddi
 .cal-legend{display:flex;gap:16px;margin-bottom:16px;font-size:12px;color:var(--text-secondary);align-items:center;}
 .cal-legend-swatch{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:middle;}
 
-/* Timeline */
-.timeline-wrap{position:relative;padding-left:36px;max-width:760px;}
-.timeline-line{position:absolute;left:9px;top:4px;bottom:4px;width:2px;background:var(--border);}
-.timeline-item{position:relative;padding-bottom:26px;}
-.timeline-item:last-child{padding-bottom:0;}
-.timeline-dot{position:absolute;left:-36px;top:2px;width:18px;height:18px;border-radius:50%;background:var(--surface);border:3px solid var(--border-2,var(--pink));box-shadow:0 0 0 4px var(--bg);}
-.timeline-dot.cat-launch{border-color:var(--pink);}
-.timeline-dot.cat-promo{border-color:var(--blue);}
-.timeline-dot.cat-campaign{border-color:var(--green);}
-.timeline-dot.cat-milestone{border-color:var(--gold);}
-.timeline-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;}
-.timeline-date{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--pink);margin-bottom:3px;}
-.timeline-title{font-size:15px;font-weight:700;margin-bottom:3px;}
-.timeline-desc{font-size:13px;color:var(--text-secondary);line-height:1.5;}
-.timeline-cat-tag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.03em;padding:2px 8px;border-radius:8px;margin-top:8px;}
-.timeline-cat-tag.cat-launch{background:var(--pink-light);color:var(--pink-dark);}
-.timeline-cat-tag.cat-promo{background:#EFF3FE;color:var(--blue);}
-.timeline-cat-tag.cat-campaign{background:#E7F9EF;color:var(--green);}
-.timeline-cat-tag.cat-milestone{background:#F8F2E8;color:var(--gold);}
+/* Timeline — snake/serpentine layout: rows alternate direction to minimize vertical scroll */
 .timeline-empty{color:var(--text-secondary);font-style:italic;font-size:13px;}
+.timeline-snake{display:flex;flex-direction:column;gap:0;max-width:1120px;}
+.snake-row{display:flex;gap:20px;}
+.snake-row.reverse{flex-direction:row-reverse;}
+.snake-card{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--pink);border-radius:10px;padding:16px 16px 14px;position:relative;min-height:128px;display:flex;flex-direction:column;}
+.snake-card.cat-launch{border-top-color:var(--pink);}
+.snake-card.cat-promo{border-top-color:var(--blue);}
+.snake-card.cat-campaign{border-top-color:var(--green);}
+.snake-card.cat-milestone{border-top-color:var(--gold);}
+.snake-num{position:absolute;top:-11px;left:14px;width:22px;height:22px;border-radius:50%;background:var(--pink);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px var(--bg);}
+.snake-date{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.03em;color:var(--pink);margin:4px 0 4px;}
+.snake-title{font-size:14px;font-weight:700;line-height:1.3;margin-bottom:4px;}
+.snake-desc{font-size:12px;color:var(--text-secondary);line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;flex:1;}
+.snake-cat-tag{align-self:flex-start;margin-top:8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.03em;padding:2px 8px;border-radius:8px;}
+.snake-cat-tag.cat-launch{background:var(--pink-light);color:var(--pink-dark);}
+.snake-cat-tag.cat-promo{background:#EFF3FE;color:var(--blue);}
+.snake-cat-tag.cat-campaign{background:#E7F9EF;color:var(--green);}
+.snake-cat-tag.cat-milestone{background:#F8F2E8;color:var(--gold);}
+.snake-turn{display:flex;height:26px;}
+.snake-turn.to-right{justify-content:flex-end;}
+.snake-turn.to-left{justify-content:flex-start;}
+.snake-turn-line{width:3px;background:var(--border);border-radius:2px;margin:0 34px;}
 </style>
 </head>
 <body>
@@ -562,7 +565,7 @@ function renderCalendar(){
   grid.innerHTML = html;
 }
 
-// ============ RENDER: TIMELINE ============
+// ============ RENDER: TIMELINE (snake/serpentine layout) ============
 function timelineParseDate(str){
   // Timeline sheet dates are simple "Mon D" strings (e.g. "Sep 2"), reuse the same flexible parser.
   return parseFlexDate(str);
@@ -581,21 +584,36 @@ function renderTimeline(){
       return 0;
     });
 
-  const html = items.map(r=>{
-    const cat = (r.Category||'Launch').trim().toLowerCase();
-    const catClass = ['launch','promo','campaign','milestone'].includes(cat) ? cat : 'launch';
-    return `<div class="timeline-item">
-      <div class="timeline-dot cat-${catClass}"></div>
-      <div class="timeline-card">
-        <div class="timeline-date">${r.Date||''}</div>
-        <div class="timeline-title">${r.Moment||''}</div>
-        ${r.Descriptor? `<div class="timeline-desc">${r.Descriptor}</div>` : ''}
-        <span class="timeline-cat-tag cat-${catClass}">${r.Category||'Launch'}</span>
-      </div>
-    </div>`;
-  }).join('');
+  const PER_ROW = 3; // cards per row before the line turns
+  let html = '<div class="timeline-snake">';
+  for(let i=0; i<items.length; i+=PER_ROW){
+    const rowItems = items.slice(i, i+PER_ROW);
+    const rowIndex = i / PER_ROW;
+    const reverse = rowIndex % 2 === 1;
 
-  grid.innerHTML = `<div class="timeline-wrap"><div class="timeline-line"></div>${html}</div>`;
+    html += `<div class="snake-row ${reverse ? 'reverse' : ''}">`;
+    rowItems.forEach((r, idx) => {
+      const cat = (r.Category||'Launch').trim().toLowerCase();
+      const catClass = ['launch','promo','campaign','milestone'].includes(cat) ? cat : 'launch';
+      const num = i + idx + 1;
+      html += `<div class="snake-card cat-${catClass}">
+        <div class="snake-num">${num}</div>
+        <div class="snake-date">${r.Date||''}</div>
+        <div class="snake-title">${r.Moment||''}</div>
+        ${r.Descriptor? `<div class="snake-desc">${r.Descriptor}</div>` : ''}
+        <span class="snake-cat-tag cat-${catClass}">${r.Category||'Launch'}</span>
+      </div>`;
+    });
+    html += `</div>`;
+
+    // Turn connector down to the next row, alternating which edge it drops from
+    if(i + PER_ROW < items.length){
+      const toRight = rowIndex % 2 === 0; // even rows read left→right, so they end on the right edge
+      html += `<div class="snake-turn ${toRight ? 'to-right' : 'to-left'}"><div class="snake-turn-line"></div></div>`;
+    }
+  }
+  html += '</div>';
+  grid.innerHTML = html;
 }
 
 // ============ TABS ============
