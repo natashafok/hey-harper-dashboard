@@ -153,29 +153,23 @@ tr.month-sep td{background:var(--surface-2);font-weight:700;cursor:pointer;paddi
 .cal-legend{display:flex;gap:16px;margin-bottom:16px;font-size:12px;color:var(--text-secondary);align-items:center;}
 .cal-legend-swatch{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:middle;}
 
-/* Timeline — snake/serpentine layout: rows alternate direction to minimize vertical scroll */
+/* Timeline — continuous winding line (racetrack/snake) with nodes on the line, text below each node */
 .timeline-empty{color:var(--text-secondary);font-style:italic;font-size:13px;}
-.timeline-snake{display:flex;flex-direction:column;gap:0;max-width:1120px;}
-.snake-row{display:flex;gap:20px;}
-.snake-row.reverse{flex-direction:row-reverse;}
-.snake-card{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--pink);border-radius:10px;padding:16px 16px 14px;position:relative;min-height:128px;display:flex;flex-direction:column;}
-.snake-card.cat-launch{border-top-color:var(--pink);}
-.snake-card.cat-promo{border-top-color:var(--blue);}
-.snake-card.cat-campaign{border-top-color:var(--green);}
-.snake-card.cat-milestone{border-top-color:var(--gold);}
-.snake-num{position:absolute;top:-11px;left:14px;width:22px;height:22px;border-radius:50%;background:var(--pink);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px var(--bg);}
-.snake-date{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.03em;color:var(--pink);margin:4px 0 4px;}
-.snake-title{font-size:14px;font-weight:700;line-height:1.3;margin-bottom:4px;}
-.snake-desc{font-size:12px;color:var(--text-secondary);line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;flex:1;}
-.snake-cat-tag{align-self:flex-start;margin-top:8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.03em;padding:2px 8px;border-radius:8px;}
-.snake-cat-tag.cat-launch{background:var(--pink-light);color:var(--pink-dark);}
-.snake-cat-tag.cat-promo{background:#EFF3FE;color:var(--blue);}
-.snake-cat-tag.cat-campaign{background:#E7F9EF;color:var(--green);}
-.snake-cat-tag.cat-milestone{background:#F8F2E8;color:var(--gold);}
-.snake-turn{display:flex;height:26px;}
-.snake-turn.to-right{justify-content:flex-end;}
-.snake-turn.to-left{justify-content:flex-start;}
-.snake-turn-line{width:3px;background:var(--border);border-radius:2px;margin:0 34px;}
+.timeline-wrap2{position:relative;width:1100px;max-width:100%;margin:0 auto;}
+.timeline-wrap2 svg{display:block;width:100%;height:auto;}
+.tl-node-label{position:absolute;width:230px;margin-left:-115px;text-align:center;}
+.tl-node-date{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:3px;}
+.tl-node-date.cat-launch{color:var(--pink-dark);}
+.tl-node-date.cat-promo{color:var(--blue);}
+.tl-node-date.cat-campaign{color:var(--green);}
+.tl-node-date.cat-milestone{color:var(--gold);}
+.tl-node-title{font-size:14px;font-weight:700;color:var(--text-primary);line-height:1.3;margin-bottom:4px;}
+.tl-node-desc{font-size:12px;color:var(--text-secondary);line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.tl-node-tag{display:inline-block;margin-top:6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.03em;padding:2px 8px;border-radius:8px;}
+.tl-node-tag.cat-launch{background:var(--pink-light);color:var(--pink-dark);}
+.tl-node-tag.cat-promo{background:#EFF3FE;color:var(--blue);}
+.tl-node-tag.cat-campaign{background:#E7F9EF;color:var(--green);}
+.tl-node-tag.cat-milestone{background:#F8F2E8;color:var(--gold);}
 </style>
 </head>
 <body>
@@ -565,7 +559,7 @@ function renderCalendar(){
   grid.innerHTML = html;
 }
 
-// ============ RENDER: TIMELINE (snake/serpentine layout) ============
+// ============ RENDER: TIMELINE (continuous winding line, nodes on the line) ============
 function timelineParseDate(str){
   // Timeline sheet dates are simple "Mon D" strings (e.g. "Sep 2"), reuse the same flexible parser.
   return parseFlexDate(str);
@@ -584,36 +578,71 @@ function renderTimeline(){
       return 0;
     });
 
-  const PER_ROW = 3; // cards per row before the line turns
-  let html = '<div class="timeline-snake">';
-  for(let i=0; i<items.length; i+=PER_ROW){
-    const rowItems = items.slice(i, i+PER_ROW);
-    const rowIndex = i / PER_ROW;
-    const reverse = rowIndex % 2 === 1;
+  const CAT_COLORS = { launch:'#D6388A', promo:'#3B82F6', campaign:'#2FBF71', milestone:'#C4A265' };
+  function catClassFor(r){
+    const cat = (r.Category||'Launch').trim().toLowerCase();
+    return ['launch','promo','campaign','milestone'].includes(cat) ? cat : 'launch';
+  }
 
-    html += `<div class="snake-row ${reverse ? 'reverse' : ''}">`;
-    rowItems.forEach((r, idx) => {
-      const cat = (r.Category||'Launch').trim().toLowerCase();
-      const catClass = ['launch','promo','campaign','milestone'].includes(cat) ? cat : 'launch';
-      const num = i + idx + 1;
-      html += `<div class="snake-card cat-${catClass}">
-        <div class="snake-num">${num}</div>
-        <div class="snake-date">${r.Date||''}</div>
-        <div class="snake-title">${r.Moment||''}</div>
-        ${r.Descriptor? `<div class="snake-desc">${r.Descriptor}</div>` : ''}
-        <span class="snake-cat-tag cat-${catClass}">${r.Category||'Launch'}</span>
-      </div>`;
-    });
-    html += `</div>`;
+  const PER_LANE = 2;      // stops per lane before the line turns
+  const VBW = 1100;        // viewBox width — matches the fixed-width wrapper (desktop-only view)
+  const LEFT_X = 300, RIGHT_X = 800;
+  const LANE_H = 210;      // vertical distance between lanes
+  const TOP_PAD = 60;
+  const R = 16;             // node radius
+  const BULGE = 70;        // how far the turn bulges outward
 
-    // Turn connector down to the next row, alternating which edge it drops from
-    if(i + PER_ROW < items.length){
-      const toRight = rowIndex % 2 === 0; // even rows read left→right, so they end on the right edge
-      html += `<div class="snake-turn ${toRight ? 'to-right' : 'to-left'}"><div class="snake-turn-line"></div></div>`;
+  const laneCount = Math.ceil(items.length / PER_LANE);
+  const VBH = TOP_PAD + (laneCount - 1) * LANE_H + 150;
+
+  // Compute each item's (x, y) position
+  const coords = items.map((r, idx) => {
+    const lane = Math.floor(idx / PER_LANE);
+    const posInLane = idx % PER_LANE;
+    const reversed = lane % 2 === 1;
+    const x = reversed
+      ? (posInLane === 0 ? RIGHT_X : LEFT_X)
+      : (posInLane === 0 ? LEFT_X : RIGHT_X);
+    const y = TOP_PAD + lane * LANE_H;
+    return { x, y, lane };
+  });
+
+  // Build one continuous path across all nodes, with rounded bulge turns between lanes
+  let path = `M ${coords[0].x},${coords[0].y}`;
+  for(let i=1; i<coords.length; i++){
+    const prev = coords[i-1], cur = coords[i];
+    if(cur.lane === prev.lane){
+      path += ` L ${cur.x},${cur.y}`;
+    } else {
+      const bulgeSide = prev.lane % 2 === 0 ? 1 : -1; // even lane ends → bulge right; odd lane ends → bulge left
+      const bx = prev.x + bulgeSide * BULGE;
+      path += ` C ${bx},${prev.y} ${bx},${cur.y} ${cur.x},${cur.y}`;
     }
   }
-  html += '</div>';
-  grid.innerHTML = html;
+
+  let svg = `<svg viewBox="0 0 ${VBW} ${VBH}" xmlns="http://www.w3.org/2000/svg">`;
+  svg += `<path d="${path}" fill="none" stroke="var(--pink)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>`;
+  coords.forEach((c, idx) => {
+    const color = CAT_COLORS[catClassFor(items[idx])];
+    svg += `<circle cx="${c.x}" cy="${c.y}" r="${R}" fill="${color}" stroke="var(--bg)" stroke-width="4"/>`;
+    svg += `<text x="${c.x}" y="${c.y+5}" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="inherit">${idx+1}</text>`;
+  });
+  svg += `</svg>`;
+
+  const labels = coords.map((c, idx) => {
+    const r = items[idx];
+    const catClass = catClassFor(r);
+    const topPx = c.y + R + 14;
+    const leftPct = (c.x / VBW) * 100;
+    return `<div class="tl-node-label" style="top:${topPx}px; left:${leftPct}%;">
+      <div class="tl-node-date cat-${catClass}">${r.Date||''}</div>
+      <div class="tl-node-title">${r.Moment||''}</div>
+      ${r.Descriptor? `<div class="tl-node-desc">${r.Descriptor}</div>` : ''}
+      <span class="tl-node-tag cat-${catClass}">${r.Category||'Launch'}</span>
+    </div>`;
+  }).join('');
+
+  grid.innerHTML = `<div class="timeline-wrap2" style="height:${(VBH/VBW*1100)}px;">${svg}${labels}</div>`;
 }
 
 // ============ TABS ============
